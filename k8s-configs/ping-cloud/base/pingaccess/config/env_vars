@@ -65,6 +65,3 @@ PD_CLUSTER_PORT=8989
 RESTORE_BACKUP=true
 
 JAVA_OPTS=-javaagent:/opt/staging/jmx_prometheus_javaagent-0.14.0.jar=8080:/opt/out/instance/conf/jmx_export_config.yaml
-
-PING_IDENTITY_DEVOPS_USER=ssm://pcpt/devops-license/user
-PING_IDENTITY_DEVOPS_KEY=ssm://pcpt/devops-license/user
