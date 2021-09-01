@@ -50,3 +50,6 @@ PD_DELEGATOR_PROFILE_SCOPE_ENABLED=false
 
 # Short-term fix for PDO-2138.
 PING_CONTAINER_PRIVILEGED=true
+
+PING_IDENTITY_DEVOPS_USER=ssm://pcpt/devops-license/user
+PING_IDENTITY_DEVOPS_KEY=ssm://pcpt/devops-license/user
