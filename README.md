@@ -37,8 +37,14 @@ The following tools must be set up and configured correctly:
 To set up the environment, the following environment variables must be exported
 at the very minimum:
 
+- PING_IDENTITY_DEVOPS_USER
+- PING_IDENTITY_DEVOPS_KEY
 - BACKUP_URL
 - TENANT_DOMAIN
+
+The DEVOPS user and key may be obtained from the Ping DevOps GTE team here:
+
+https://docs.google.com/forms/d/e/1FAIpQLSdgEFvqQQNwlsxlT6SaraeDMBoKFjkJVCyMvGPVPKcrzT3yHA/viewform
 
 The TENANT_DOMAIN must be an AWS registered domain and hosted zone on Route53 in
 the same AWS IAM role (e.g. arn:aws:iam::555555555555:role/ROLE) as your EKS
@@ -55,6 +61,8 @@ To build the environment, simply run:
 ```
 kustomize build https://github.com/pingidentity/ping-cloud-base?ref=master |
   envsubst '
+    ${PING_IDENTITY_DEVOPS_USER}
+    ${PING_IDENTITY_DEVOPS_KEY}
     ${BACKUP_URL}
     ${TENANT_DOMAIN}' |
   kubectl apply -f -
@@ -121,9 +129,9 @@ resources:
 ```
 
 In addition, some overrides must be provided (e.g. via secret and configmap
-generators) for the ingress URLs at a minimum. The kustomization.yaml in the 
-root of this repository shows an example of how this can be done. More 
-information on kustomize may be found here:
+generators) for the DEVOPS user/key and the ingress URLs at a minimum. The
+kustomization.yaml in the root of this repository shows an example of how this
+can be done. More information on kustomize may be found here:
 
 https://kustomize.io/
 

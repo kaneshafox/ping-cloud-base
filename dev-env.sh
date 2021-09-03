@@ -161,10 +161,10 @@
 # MYSQL_PASSWORD            | The DBA password of the PingCentral MySQL RDS      | The SSM path:
 #                           | database.                                          | ssm://pcpt/ping-central/rds/password
 #                           |                                                    |
-# PING_IDENTITY_DEVOPS_USER | A user with license to run Ping Software           | The SSM path:
+# PING_IDENTITY_DEVOPS_USER | A user with license to run Ping Software.          | The SSM path:
 #                           |                                                    | ssm://pcpt/devops-license/user
 #                           |                                                    |
-# PING_IDENTITY_DEVOPS_KEY  | The key to the above user                          | The SSM path:
+# PING_IDENTITY_DEVOPS_KEY  | The key to the above user.                         | The SSM path:
 #                           |                                                    | ssm://pcpt/devops-license/key
 ########################################################################################################################
 
