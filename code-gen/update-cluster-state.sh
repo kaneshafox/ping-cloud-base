@@ -1019,6 +1019,8 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
             K8S_GIT_URL="${PING_CLOUD_BASE_REPO_URL}" \
             K8S_GIT_BRANCH="${NEW_VERSION}" \
             ENVIRONMENTS="${NEW_BRANCH}" \
+            PING_IDENTITY_DEVOPS_USER='' \
+            PING_IDENTITY_DEVOPS_KEY='' \
             SSH_ID_PUB_FILE="${ID_RSA_FILE}" \
             SSH_ID_KEY_FILE="${ID_RSA_FILE}" \
             "${NEW_PING_CLOUD_BASE_REPO}/${CODE_GEN_DIR}/generate-cluster-state.sh"
