@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p14c-oauth-service
+$patch: delete
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pingone-configurator
+$patch: delete
+
+---
+
