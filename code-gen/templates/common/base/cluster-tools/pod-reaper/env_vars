@@ -1,4 +1,5 @@
 SCHEDULE=@every 4h
 MAX_PODS=1
-MAX_DURATION=1w
+#168h equals 7 days/1 week
+MAX_DURATION=168h
 LOG_LEVEL=Info
