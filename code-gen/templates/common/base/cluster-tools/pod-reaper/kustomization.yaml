@@ -9,5 +9,6 @@ generatorOptions:
 
 configMapGenerator:
 - name: pod-reaper-environment-variables
+  behavior: merge
   envs:
   - env_vars
