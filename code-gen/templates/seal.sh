@@ -125,7 +125,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: ${NAME}
-  namespace: ${NAMESPACE}
+  namespace: ${PING_CLOUD_NAMESPACE}
 \$patch: delete
 
 ---
@@ -134,7 +134,7 @@ EOF
 
   # Only seal secrets that have data in them.
   if grep '^data' "${FILE}" &> /dev/null; then
-    echo "Creating sealed secret for \"${NAMESPACE}:${NAME}\""
+    echo "Creating sealed secret for \"${PING_CLOUD_NAMESPACE}:${NAME}\""
 
     # Append the sealed secret to the sealed secrets file.
     kubeseal --cert "${CERT_FILE}" -o yaml --allow-empty-data < "${FILE}" >> "${SEALED_SECRETS_FILE}"
@@ -142,9 +142,9 @@ EOF
     echo >> "${SEALED_SECRETS_FILE}"
 
     # Replace ping-cloud-* namespace to just ping-cloud because it is the default in the kustomization base.
-    echo -n "${NAMESPACE}" | grep '^ping-cloud' &> /dev/null && NAMESPACE=ping-cloud
+    echo -n "${PING_CLOUD_NAMESPACE}" | grep '^ping-cloud' &> /dev/null && PING_CLOUD_NAMESPACE=ping-cloud
   else
-    echo "Not creating sealed secret for \"${NAMESPACE}:${NAME}\" because it doesn't have any data"
+    echo "Not creating sealed secret for \"${PING_CLOUD_NAMESPACE}:${NAME}\" because it doesn't have any data"
   fi
 done
 
