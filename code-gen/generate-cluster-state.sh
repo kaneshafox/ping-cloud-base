@@ -373,7 +373,8 @@ ${REGION_NICK_NAME}
 ${TENANT_NAME}
 ${PING_CLOUD_NAMESPACE}
 ${KNOWN_HOSTS_CLUSTER_STATE_REPO}
-${SSH_ID_KEY_BASE64}'
+${SSH_ID_KEY_BASE64}
+${PGO_BACKUP_BUCKET_NAME}'
 
 ########################################################################################################################
 # Export some derived environment variables.
@@ -610,6 +611,9 @@ echo "Initial PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
 
 echo "Initial TARGET_DIR: ${TARGET_DIR}"
 echo "Initial IS_BELUGA_ENV: ${IS_BELUGA_ENV}"
+
+echo "Initial ACCOUNT_BASE_PATH: ${ACCOUNT_BASE_PATH}"
+echo "Initial PGO_BUCKET_URI_SUFFIX: ${PGO_BUCKET_URI_SUFFIX}"
 echo ---
 
 # Use defaults for other variables, if not present.
@@ -684,6 +688,9 @@ export SSH_ID_KEY_FILE="${SSH_ID_KEY_FILE}"
 
 export TARGET_DIR="${TARGET_DIR:-/tmp/sandbox}"
 
+export ACCOUNT_BASE_PATH=${ACCOUNT_BASE_PATH:-ssm://pcpt/config/k8s-config/accounts}
+export PGO_BUCKET_URI_SUFFIX = ${PGO_BUCKET_URI_SUFFIX:-/pgo-bucket/uri}
+
 ### FEATURE FLAG DEFAULTS ###
 PF_PROVISIONING_ENABLED="${PF_PROVISIONING_ENABLED:-false}"
 
@@ -734,6 +741,9 @@ echo "Using PF_PROVISIONING_ENABLED: ${PF_PROVISIONING_ENABLED}"
 
 echo "Using TARGET_DIR: ${TARGET_DIR}"
 echo "Using IS_BELUGA_ENV: ${IS_BELUGA_ENV}"
+
+echo "Using ACCOUNT_BASE_PATH: ${ACCOUNT_BASE_PATH}"
+echo "Using PGO_BUCKET_URI_SUFFIX: ${PGO_BUCKET_URI_SUFFIX}"
 echo ---
 
 NEW_RELIC_LICENSE_KEY="${NEW_RELIC_LICENSE_KEY:-ssm://pcpt/sre/new-relic/java-agent-license-key}"
@@ -966,8 +976,7 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   add_irsa_variables "${ACCOUNT_ID_PATH_PREFIX:-unused}" "${ENV}"
   add_nlb_variables "${NLB_EIP_PATH_PREFIX:-unused}" "${ENV}"
 
-  # Set PGO_BACKUP_BUCKET_NAME default if variable not passed in
-  export PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME:-"${ACCOUNT_BASE_PATH}/${ENV}${PGO_BUCKET_URI_SUFFIX}"}
+  PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME:-"${ACCOUNT_BASE_PATH}/${ENV}${PGO_BUCKET_URI_SUFFIX}"}
   export PGO_BACKUP_BUCKET_NAME=$(get_pgo_backup_bucket_name "${PGO_BACKUP_BUCKET_NAME}")
 
   echo ---

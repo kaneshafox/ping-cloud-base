@@ -621,8 +621,11 @@ get_pgo_backup_bucket_name() {
   local pgo_backup_env=${1}
 
   if [[ "${pgo_backup_env}" == "ssm://"* ]]; then
-      # env var is an ssm parameter
-      pgo_backup_env=$(get_ssm_value "${pgo_backup_env#ssm:/}")
+    if ! ssm_value=$(get_ssm_value "${pgo_backup_env#ssm:/}"); then
+      pgo_backup_env="not_set"
+    else
+      pgo_backup_env="${ssm_value}"
+    fi
   fi
 
   echo "${pgo_backup_env#s3://}"
