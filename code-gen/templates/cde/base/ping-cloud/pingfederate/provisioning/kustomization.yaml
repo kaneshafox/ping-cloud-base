@@ -24,11 +24,11 @@ patchesStrategicMerge:
           # Use IRSA role authentication in CDEs
           # FIXME: This value needs to be auto if running a CDE like deployment from the CSG account
           # This manual change will not be needed once PDO-4406 is completed
-          repo1-s3-key-type: web-id
+          repo1-s3-key-type: auto
         repos:
           - name: repo1
             s3:
-              bucket: "${BACKUP_BUCKET_NAME}"
+              bucket: "${PGO_BACKUP_BUCKET_NAME}"
               endpoint: "s3.${REGION}.amazonaws.com"
               region: "${REGION}"
             schedules:
