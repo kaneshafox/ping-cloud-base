@@ -689,7 +689,7 @@ export SSH_ID_KEY_FILE="${SSH_ID_KEY_FILE}"
 export TARGET_DIR="${TARGET_DIR:-/tmp/sandbox}"
 
 export ACCOUNT_BASE_PATH=${ACCOUNT_BASE_PATH:-ssm://pcpt/config/k8s-config/accounts}
-export PGO_BUCKET_URI_SUFFIX = ${PGO_BUCKET_URI_SUFFIX:-/pgo-bucket/uri}
+export PGO_BUCKET_URI_SUFFIX=${PGO_BUCKET_URI_SUFFIX:-/pgo-bucket/uri}
 
 ### FEATURE FLAG DEFAULTS ###
 PF_PROVISIONING_ENABLED="${PF_PROVISIONING_ENABLED:-false}"
