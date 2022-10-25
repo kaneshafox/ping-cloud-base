@@ -69,6 +69,36 @@ relative_path() {
 }
 
 ########################################################################################################################
+# Comments out feature flagged resources from the k8s-configs kustomization.yaml file.
+#
+# Arguments
+#   $1 -> The directory containing k8s-configs.
+########################################################################################################################
+feature_flags() {
+  cd "${1}/k8s-configs"
+
+  # Map with the feature flag environment variable & the term to search to find the base kustomization file
+  flag_map=( "${RADIUS_PROXY_ENABLED}:ff-radius-proxy" )
+
+  for flag in "${flag_map[@]}" ; do
+      enabled="${flag%%:*}"
+      search_term="${flag##*:}"
+      log "${search_term} is set to ${enabled}"
+
+      # If the feature flag is disabled, comment the search term lines out of the base kustomization file
+      if [[ ${enabled} != "true" ]]; then
+        # Find the base kustomization file
+        kust_file=$(git grep -l "${search}" | grep "kustomization.yaml")
+        log "Removing ${search} from ${kust_file}"
+        sed -i.bak \
+            -e "/${search}/ s|^#*|#|g" \
+            "${kust_file}"
+        rm -f "${kust_file}".bak
+      fi
+  done
+}
+
+########################################################################################################################
 # Format the provided kustomize version for numeric comparison. For example, if the kustomize version is 4.0.5, it
 # returns 004000005000.
 #
@@ -157,6 +187,8 @@ if test -f 'env_vars'; then
           "${kust_file}"
       rm -f "${kust_file}".bak
     done
+
+    feature_flags "${TMP_DIR}/${K8S_GIT_BRANCH}"
   )
   test $? -ne 0 && exit 1
 fi
