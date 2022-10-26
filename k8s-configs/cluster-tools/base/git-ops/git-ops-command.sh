@@ -88,10 +88,10 @@ feature_flags() {
       # If the feature flag is disabled, comment the search term lines out of the base kustomization file
       if [[ ${enabled} != "true" ]]; then
         # Find the base kustomization file
-        kust_file=$(git grep -l "${search}" | grep "kustomization.yaml")
-        log "Removing ${search} from ${kust_file}"
+        kust_file=$(git grep -l "${search_term}" | grep "kustomization.yaml")
+        log "Removing ${search_term} from ${kust_file}"
         sed -i.bak \
-            -e "/${search}/ s|^#*|#|g" \
+            -e "/${search_term}/ s|^#*|#|g" \
             "${kust_file}"
         rm -f "${kust_file}".bak
       fi
