@@ -7,12 +7,12 @@ commonLabels:
   app: ping-cloud
 
 resources:
-  - statefulset.yaml
-  - service.yaml
-  - ingress.yaml
-  - hpa.yaml
-  - disruption-budget.yaml
-  - ff-radius-proxy
+- statefulset.yaml
+- service.yaml
+- ingress.yaml
+- hpa.yaml
+- disruption-budget.yaml
+- ff-radius-proxy
 
 patchesStrategicMerge:
-  - ff-radius-proxy/pingfederate-radsecproxy.yaml
+- ff-radius-proxy/pingfederate-radsecproxy.yaml
