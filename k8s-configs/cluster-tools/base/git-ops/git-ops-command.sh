@@ -80,24 +80,21 @@ feature_flags() {
   # Map with the feature flag environment variable & the term to search to find the kustomization files
   flag_map="${RADIUS_PROXY_ENABLED}:ff-radius-proxy"
 
-  for flag in "${flag_map}" ; do
-      enabled="${flag%%:*}"
-      search_term="${flag##*:}"
-      log "${search_term} is set to ${enabled}"
+  for flag in $flag_map ; do
+    enabled="${flag%%:*}"
+    search_term="${flag##*:}"
+    log "git-ops-command: ${search_term} is set to ${enabled}"
 
-      # If the feature flag is disabled, comment the search term lines out of the kustomization files
-      if [[ ${enabled} != "true" ]]; then
-        # Find the kustomization files containing the search term
-        kust_files=$(git grep -l "${search_term}" | grep "kustomization.yaml")
-        # Use sed to comment out lines containing search term
-        for kust_file in ${kust_files}; do
-          log "Commenting out ${search_term} in ${kust_file}"
-          sed -i.bak \
-              -e "/${search_term}/ s|^#*|#|g" \
-              "${kust_file}"
-          rm -f "${kust_file}".bak
-        done
-      fi
+    # If the feature flag is disabled, comment the search term lines out of the kustomization files
+    if [[ ${enabled} != "true" ]]; then
+      for kust_file in $(git grep -l "${search_term}" | grep "kustomization.yaml"); do
+        log "git-ops-command: Commenting out ${search_term} in ${kust_file}"
+        sed -i.bak \
+            -e "/${search_term}/ s|^#*|#|g" \
+            "${kust_file}"
+        rm -f "${kust_file}".bak
+      done
+    fi
   done
 }
 
