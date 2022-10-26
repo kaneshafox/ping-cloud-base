@@ -236,7 +236,6 @@ PROMETHEUS_PING_NAMESPACE=${PING_CLOUD_NAMESPACE}
 PF_PROVISIONING_ENABLED=${PF_PROVISIONING_ENABLED}
 
 RADIUS_PROXY_ENABLED=${RADIUS_PROXY_ENABLED}
-
 ########################################################################################################################
 
 # Default argo-events notification configuration
