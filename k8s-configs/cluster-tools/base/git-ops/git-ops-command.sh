@@ -96,7 +96,7 @@ feature_flags() {
               -e "/${search_term}/ s|^#*|#|g" \
               "${kust_file}"
           rm -f "${kust_file}".bak
-        fi
+        done
       fi
   done
 }
