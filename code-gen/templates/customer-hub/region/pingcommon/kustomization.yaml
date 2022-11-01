@@ -10,8 +10,8 @@ generatorOptions:
 patchesStrategicMerge:
 
 ### Remove unneccessary MyPing pods
-- ../../base/ping-cloud/pingcommon/my-ping/remove-oauth-service.yaml
-- ../../base/ping-cloud/pingcommon/my-ping/remove-pingone-configurator.yaml
+- ../../base/pingcommon/my-ping/remove-oauth-service.yaml
+- ../../base/pingcommon/my-ping/remove-pingone-configurator.yaml
 
 configMapGenerator:
 # PingCloud services

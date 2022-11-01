@@ -21,4 +21,4 @@ configMapGenerator:
 - name: pingcommon-environment-variables
   behavior: merge
   envs:
-  - ../../../env_vars
+  - ../../env_vars
