@@ -12,6 +12,8 @@ spec:
           - path: k8s-configs/${REGION_NICK_NAME}/*
           - path: k8s-configs/${REGION_NICK_NAME}/custom-resources
             exclude: true
+          - path: k8s-configs/${REGION_NICK_NAME}/logging
+            exclude: true
   template:
     metadata:
       name: "'{{path.basename}}'-${REGION_NICK_NAME}"
