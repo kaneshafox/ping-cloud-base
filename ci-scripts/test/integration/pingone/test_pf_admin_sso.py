@@ -7,6 +7,7 @@ import seleniumbase
 import pingone as p1
 
 
+@unittest.skipIf(os.getenv("PINGONE", "false") != "true", "PingOne feature disabled")
 class TestPFAdminSSO(seleniumbase.BaseCase):
     pf_admin_public_hostname = os.getenv(
         "PF_ADMIN_PUBLIC_HOSTNAME",
