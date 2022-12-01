@@ -512,7 +512,8 @@ handle_changed_k8s_secrets() {
     log "Found '${secrets_file_name}' files: ${all_secret_files}"
     for secret_file in ${all_secret_files}; do
       git show "${DEFAULT_GIT_BRANCH}:${secret_file}" >> "${old_secrets_file}"
-      echo >> "${old_secrets_file}"
+      # TODO: not sure why this is here, should be able to remove the newline at the end??
+      #echo >> "${old_secrets_file}"
     done
   done
 
