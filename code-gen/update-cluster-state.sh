@@ -489,11 +489,9 @@ git_diff() {
 #
 # Arguments
 #   $1 -> The new branch for a default git branch.
-#   $2 -> The primary region.
 ########################################################################################################################
 handle_changed_k8s_secrets() {
   NEW_BRANCH="$1"
-  PRIMARY_REGION="$2"
 
   if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
     DEFAULT_GIT_BRANCH="${CUSTOMER_HUB}"
@@ -503,14 +501,6 @@ handle_changed_k8s_secrets() {
 
   log "Handling changes to ${SECRETS_FILE_NAME} and ${SEALED_SECRETS_FILE_NAME} in branch '${DEFAULT_GIT_BRANCH}'"
 
-  # In v1.6:
-  #   - Secrets and the OOTB secrets for a release are present under <region>/ping-cloud/[orig-]secrets.yaml and
-  #     <region>/cluster-tools/[orig-]secrets.yaml for each region.
-  #   - Sealed secrets are present under <region>/sealed-secrets.yaml.
-
-  # In v1.7 and later:
-  #   - Secrets, OOTB secrets and sealed secrets are all present under base/.
-
   # First switch to the default git branch.
   git checkout --quiet "${DEFAULT_GIT_BRANCH}"
   old_secrets_dir="$(mktemp -d)"
@@ -518,26 +508,13 @@ handle_changed_k8s_secrets() {
   for secrets_file_name in "${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}"; do
     log "Handling changes to ${secrets_file_name} in branch '${DEFAULT_GIT_BRANCH}'"
     old_secrets_file="${old_secrets_dir}/${secrets_file_name}"
-
-    # The >= v1.7 case:
     all_secret_files="$(git ls-files "${K8S_CONFIGS_DIR}/${BASE_DIR}/${secrets_file_name}")"
-    if ! test "${all_secret_files}"; then
-      # The v1.6 case:
-      if test "${secrets_file_name}" = "${SEALED_SECRETS_FILE_NAME}"; then
-        file_path="${K8S_CONFIGS_DIR}/${PRIMARY_REGION}/${secrets_file_name}"
-      else
-        # The '*' below may be one of 'ping-cloud' or 'cluster-tools' as noted above.
-        file_path="${K8S_CONFIGS_DIR}/${PRIMARY_REGION}/*/${secrets_file_name}"
-      fi
-      all_secret_files="$(git ls-files "${file_path}")"
-    fi
-
     log "Found '${secrets_file_name}' files: ${all_secret_files}"
     for secret_file in ${all_secret_files}; do
       git show "${DEFAULT_GIT_BRANCH}:${secret_file}" >> "${old_secrets_file}"
       echo >> "${old_secrets_file}"
     done
-  done # secrets loop
+  done
 
   # Switch to the new git branch and copy over the old secrets, if they're different.
   git checkout --quiet "${NEW_BRANCH}"
@@ -919,7 +896,7 @@ fi
 BASE_ENV_VARS="${K8S_CONFIGS_DIR}/${BASE_DIR}/${ENV_VARS_FILE_NAME}"
 
 # Get the minimum required ping-cloud secrets (currently, the New Relic key and SSH git key).
-get_min_required_secrets
+#get_min_required_secrets
 
 # For each environment:
 #   - Generate code for all its regions
@@ -1017,8 +994,8 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
             MYSQL_USER='' \
             MYSQL_PASSWORD='' \
             PLATFORM_EVENT_QUEUE_NAME='' \
-            SSH_ID_PUB_FILE="${ID_RSA_FILE}" \
-            SSH_ID_KEY_FILE="${ID_RSA_FILE}" \
+            SSH_ID_PUB_FILE='' \
+            SSH_ID_KEY_FILE='' \
             "${NEW_PING_CLOUD_BASE_REPO}/${CODE_GEN_DIR}/generate-cluster-state.sh"
       )
       GEN_RC=$?
