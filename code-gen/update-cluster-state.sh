@@ -511,7 +511,8 @@ create_dot_old_files() {
     cp "${secret_path}" "${dst_file}.old"
   done
 
-  log "Done creating .old files for ${all_secrets[*]}"
+  msg="Done creating .old files for ${all_secrets[*]}"
+  log "${msg}"
 
   git add .
   git commit --allow-empty -m "${msg}"
