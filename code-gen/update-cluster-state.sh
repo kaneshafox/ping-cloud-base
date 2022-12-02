@@ -399,6 +399,8 @@ get_min_required_secrets() {
       log "NEW_RELIC_LICENSE_KEY not found in ${ping_cloud_secrets_yaml}"
     fi
 
+    log "TEST_ REMOVE NEW_RELIC_LICENSE_KEY found: ${NEW_RELIC_LICENSE_KEY}"
+
     ID_RSA_FILE="$(mktemp)"
     get_secret_from_file 'id_rsa' "${ping_cloud_secrets_yaml}" > "${ID_RSA_FILE}"
     if ! test -s "${ID_RSA_FILE}"; then
@@ -1005,7 +1007,6 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
             PLATFORM_EVENT_QUEUE_NAME='' \
             SSH_ID_PUB_FILE='' \
             SSH_ID_KEY_FILE="${ID_RSA_FILE}" \
-            NEW_RELIC_LICENSE_KEY="${NEW_RELIC_LICENSE_KEY}" \
             "${NEW_PING_CLOUD_BASE_REPO}/${CODE_GEN_DIR}/generate-cluster-state.sh"
       )
       GEN_RC=$?
