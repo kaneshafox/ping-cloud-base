@@ -22,7 +22,7 @@
 #       cluster-state repo.
 
 ### Global values and utility functions ###
-BASE64_DECODE_OPT="${BASE64_DECODE_OPT:--D}"
+
 
 K8S_CONFIGS_DIR='k8s-configs'
 COMMON_DIR='common'
@@ -293,14 +293,24 @@ set_env_vars() {
   fi
 }
 
-########################################################################################################################
-# Returns the initial git revision.
-#
-# Returns
-#   The initial git revision
-########################################################################################################################
-get_initial_git_rev() {
-  git log --reverse --format=format:%H 2> /dev/null | head -1
+# Determine if macOS - oftentimes upgrades run on macOS but sometimes they run on other machines too
+# Returns 0 if macOS, 1 otherwise
+is_macos() {
+  os=$(uname)
+  if [[ "${os}" == *"Darwin"* ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Automatically set the base64 decode option based on OS
+get_base64_decode_opt() {
+  if is_macos; then
+    echo "-d"
+  else
+    echo "-D"
+  fi
 }
 
 ########################################################################################################################
@@ -377,13 +387,7 @@ get_min_required_secrets() {
   ping_cloud_secrets_yaml="$(mktemp)"
   log "Attempting to get ping-cloud secrets.yaml into ${ping_cloud_secrets_yaml}"
 
-  # Try to get a secrets.yaml file from the initial git revision.
-  get_ping_cloud_secrets_file "${ping_cloud_secrets_yaml}" "$(get_initial_git_rev)"
-
-  # If secrets.yaml has no contents, then try to get it from the latest git revision.
-  if ! test -s "${ping_cloud_secrets_yaml}"; then
-    get_ping_cloud_secrets_file "${ping_cloud_secrets_yaml}"
-  fi
+  get_ping_cloud_secrets_file "${ping_cloud_secrets_yaml}"
 
   # If secrets.yaml has contents, then attempt to retrieve each required secret.
   ALL_MIN_SECRETS_FOUND=false
@@ -695,6 +699,7 @@ print_readme() {
     echo
     echo "    - Reach out to the platform team to get the right values for these secrets."
   fi
+
   echo
   echo "- The '${SECRETS_FILE_NAME}', '${ORIG_SECRETS_FILE_NAME}' and '${SEALED_SECRETS_FILE_NAME}'"
   echo "  files have been copied over from the default git branch with a suffix of '.old',"
@@ -837,6 +842,9 @@ if test -n "$(git status -s)"; then
   exit 1
 fi
 
+AUTO_BASE64_DECODE_OPT=$(get_base64_decode_opt)
+BASE64_DECODE_OPT="${BASE64_DECODE_OPT:-${AUTO_BASE64_DECODE_OPT}}"
+
 # Save off the current branch so we can switch back to it at the end of the script.
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
@@ -897,7 +905,7 @@ fi
 BASE_ENV_VARS="${K8S_CONFIGS_DIR}/${BASE_DIR}/${ENV_VARS_FILE_NAME}"
 
 # Get the minimum required ping-cloud secrets (currently, the New Relic key and SSH git key).
-#get_min_required_secrets
+get_min_required_secrets
 
 # For each environment:
 #   - Generate code for all its regions
@@ -996,7 +1004,7 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
             MYSQL_PASSWORD='' \
             PLATFORM_EVENT_QUEUE_NAME='' \
             SSH_ID_PUB_FILE='' \
-            SSH_ID_KEY_FILE='' \
+            SSH_ID_KEY_FILE="${ID_RSA_FILE}" \
             "${NEW_PING_CLOUD_BASE_REPO}/${CODE_GEN_DIR}/generate-cluster-state.sh"
       )
       GEN_RC=$?
