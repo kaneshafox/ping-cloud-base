@@ -473,7 +473,7 @@ git_diff() {
 }
 
 ########################################################################################################################
-# Create .old secrets files for 
+# Create .old secrets files for $all_secrets
 # one. This makes it easier for the operator to see the differences in secrets between the two branches.
 #
 # Arguments
@@ -498,7 +498,7 @@ create_dot_old_files() {
   for old_secrets_file in "${all_secrets[@]}"; do
     log "Copying old ${old_secrets_file} in branch '${old_branch}'"
     secret_path=$(find . -name "${old_secrets_file}" -type f)
-    git show "${old_branch}:${secret_path}" >> "${old_secrets_dir}"
+    git show "${old_branch}:${secret_path}" >> "${old_secrets_dir}/${old_secrets_file}"
   done
 
   # Switch to the new git branch and copy over the old secrets
@@ -506,7 +506,7 @@ create_dot_old_files() {
 
   secret_files="$(find "${old_secrets_dir}" -type f)"
   for secret_path in ${secret_files}; do
-    file_name="$(basename "${file}")"
+    file_name="$(basename "${secret_path}")"
     dst_file="${K8S_CONFIGS_DIR}/${BASE_DIR}/${file_name}"
     cp "${secret_path}" "${dst_file}.old"
   done
