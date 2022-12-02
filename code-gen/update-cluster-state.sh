@@ -480,7 +480,7 @@ git_diff() {
 # Arguments
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
-handle_changed_k8s_secrets() {
+create_dot_old_files() {
   NEW_BRANCH="$1"
 
   if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
@@ -502,8 +502,6 @@ handle_changed_k8s_secrets() {
     log "Found '${secrets_file_name}' files: ${all_secret_files}"
     for secret_file in ${all_secret_files}; do
       git show "${DEFAULT_GIT_BRANCH}:${secret_file}" >> "${old_secrets_file}"
-      # TODO: not sure why this is here, should be able to remove the newline at the end??
-      #echo >> "${old_secrets_file}"
     done
   done
 
@@ -514,12 +512,7 @@ handle_changed_k8s_secrets() {
   for file in ${secret_files}; do
     file_name="$(basename "${file}")"
     dst_file="${K8S_CONFIGS_DIR}/${BASE_DIR}/${file_name}"
-
-    if diff -qbB "${file}" "${dst_file}"; then
-      log "No difference found between ${file_name} and ${dst_file}"
-    else
-      cp "${file}" "${dst_file}.old"
-    fi
+    cp "${file}" "${dst_file}.old"
   done
 
   msg="Done creating ${SECRETS_FILE_NAME}.old and ${SEALED_SECRETS_FILE_NAME}.old in branch '${NEW_BRANCH}'"
