@@ -319,28 +319,21 @@ get_base64_decode_opt() {
 # it will be obtained from the HEAD of the current revision.
 #
 # Arguments
-#   $1 -> The output file to which to write secrets.yaml. If the secrets.yaml file is not found, then nothing will be
-#         written to the file.
-#   $2 -> Optional. The git revision.
+#   $1 secrets_json -> The output file to which to write secrets.yaml in json format.
+#         If the secrets.yaml file is not found, then nothing will be written to the file.
 ########################################################################################################################
-get_ping_cloud_secrets_file() {
-  out_file="$1"
-  git_rev="$2"
-
-  # Switch to the git revision, if provided.
-  if test "${git_rev}"; then
-    log "Switching to git revision ${git_rev}"
-    git checkout --quiet "${git_rev}"
-  fi
+get_secrets_file_json() {
+  secrets_json="$1"
 
   # Get the full path of the secrets.yaml file that has all ping-cloud secrets.
-  secrets_yaml="$(git grep -e NEW_RELIC_LICENSE_KEY | grep -v '\$' | head -1 | cut -d: -f1)"
+  # Secrets yaml
+  secrets_yaml="$(find . -name secrets.yaml)"
 
   # If found, copy it to the provided output file in JSON format.
   # NOTE: it's safer to use kubectl here than a YAML parser like yq, whose options vary by version of the tool, OS, etc.
   if test "${secrets_yaml}"; then
-    log "Attempting to transform ${secrets_yaml} from YAML to JSON into ${out_file}"
-    if ! kubectl apply -f "${secrets_yaml}" -o json --dry-run 2>/dev/null > "${out_file}"; then
+    log "Attempting to transform ${secrets_yaml} from YAML to JSON into ${secrets_json}"
+    if ! kubectl apply -f "${secrets_yaml}" -o json --dry-run 2>/dev/null > "${secrets_json}"; then
       log "Unable to parse secrets from file ${secrets_yaml}"
     fi
   else
@@ -378,31 +371,22 @@ get_secret_from_file() {
 # Retrieve the minimum required secrets required to stand up the out-of-the-box ping-cloud stack into the following
 # environment variables:
 #
-#   - NEW_RELIC_LICENSE_KEY - used to send data to NewRelic account
 #   - ID_RSA_FILE - SSH key for cloning from git
 #
 # If all the secrets are found, then a global variable named ALL_MIN_SECRETS_FOUND will be set to true.
 ########################################################################################################################
 get_min_required_secrets() {
-  ping_cloud_secrets_yaml="$(mktemp)"
+  secrets_yaml_json="$(mktemp)"
   log "Attempting to get ping-cloud secrets.yaml into ${ping_cloud_secrets_yaml}"
 
-  get_ping_cloud_secrets_file "${ping_cloud_secrets_yaml}"
+  get_secrets_file_json "${secrets_yaml_json}"
 
   # If secrets.yaml has contents, then attempt to retrieve each required secret.
   ALL_MIN_SECRETS_FOUND=false
-  if test -s "${ping_cloud_secrets_yaml}"; then
+  if test -s "${secrets_yaml_json}"; then
     ALL_MIN_SECRETS_FOUND=true
-
-    NEW_RELIC_LICENSE_KEY="$(get_secret_from_file 'NEW_RELIC_LICENSE_KEY' "${ping_cloud_secrets_yaml}")"
-    if ! test "${NEW_RELIC_LICENSE_KEY}"; then
-      log "NEW_RELIC_LICENSE_KEY not found in ${ping_cloud_secrets_yaml}"
-    fi
-
-    log "TEST_ REMOVE NEW_RELIC_LICENSE_KEY found: ${NEW_RELIC_LICENSE_KEY}"
-
     ID_RSA_FILE="$(mktemp)"
-    get_secret_from_file 'id_rsa' "${ping_cloud_secrets_yaml}" > "${ID_RSA_FILE}"
+    get_secret_from_file 'id_rsa' "${secrets_yaml_json}" > "${ID_RSA_FILE}"
     if ! test -s "${ID_RSA_FILE}"; then
       log "SSH key not found in ${ID_RSA_FILE}"
       ALL_MIN_SECRETS_FOUND=false
@@ -975,8 +959,6 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
           log "Resetting variables to the default or out-of-the-box values per request"
           unset LETS_ENCRYPT_SERVER
         fi
-
-        export NEW_RELIC_LICENSE_KEY="${NEW_RELIC_LICENSE_KEY}"
 
         export ARGOCD_SLACK_TOKEN_SSM_PATH="${ARGOCD_SLACK_TOKEN_SSM_PATH}"
 
