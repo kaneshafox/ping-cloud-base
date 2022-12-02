@@ -481,7 +481,7 @@ git_diff() {
 ########################################################################################################################
 create_dot_old_files() {
   local upgrade_branch="$1"
-  local all_secrets="${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}"
+  local all_secrets=("${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}")
 
   if echo "${upgrade_branch}" | grep -q "${CUSTOMER_HUB}"; then
     local old_branch="${CUSTOMER_HUB}"
@@ -489,13 +489,13 @@ create_dot_old_files() {
     local old_branch="${upgrade_branch##*-}"
   fi
 
-  log "Handling changes to ${all_secrets} in branch '${DEFAULT_GIT_BRANCH}'"
+  log "Handling changes to ${all_secrets[*]} in branch '${DEFAULT_GIT_BRANCH}'"
 
   # First switch to the old git branch.
   git checkout --quiet "${old_branch}"
   old_secrets_dir="$(mktemp -d)"
 
-  for secrets_file_name in ${all_secrets}; do
+  for secrets_file_name in "${all_secrets[@]}"; do
     log "Copying old ${secrets_file_name} in branch '${old_branch}'"
     old_secrets_file="${old_secrets_dir}/${secrets_file_name}"
     git show "${old_branch}:${secret_file}" >> "${old_secrets_file}"
@@ -511,7 +511,7 @@ create_dot_old_files() {
     cp "${file}" "${dst_file}.old"
   done
 
-  log "Done creating .old files for ${all_secrets}"
+  log "Done creating .old files for ${all_secrets[*]}"
 
   git add .
   git commit --allow-empty -m "${msg}"
