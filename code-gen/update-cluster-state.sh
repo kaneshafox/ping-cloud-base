@@ -479,20 +479,20 @@ git_diff() {
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 create_dot_old_files() {
+  set -x
   local update_branch="$1"
-  local old_branch="${update_branch##*-}"
   local all_secrets=("${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}")
 
-  log "Handling changes to ${all_secrets[*]} in branch '${DEFAULT_GIT_BRANCH}'"
+  log "Handling changes to ${all_secrets[*]} in branch '${OLD_BRANCH}'"
 
   # First switch to the old git branch.
-  git checkout --quiet "${old_branch}"
+  git checkout --quiet "${OLD_BRANCH}"
   old_secrets_dir="$(mktemp -d)"
 
   for old_secrets_file in "${all_secrets[@]}"; do
-    log "Copying old ${old_secrets_file} in branch '${old_branch}'"
+    log "Copying old ${old_secrets_file} in branch '${OLD_BRANCH}'"
     secret_path=$(find . -name "${old_secrets_file}" -type f)
-    git show "${old_branch}:${secret_path}" >> "${old_secrets_dir}/${old_secrets_file}"
+    git show "${OLD_BRANCH}:${secret_path}" >> "${old_secrets_dir}/${old_secrets_file}"
   done
 
   # Switch to the new git branch and copy over the old secrets
@@ -510,6 +510,7 @@ create_dot_old_files() {
 
   git add .
   git commit --allow-empty -m "${msg}"
+  set +x
 }
 
 ########################################################################################################################
@@ -520,20 +521,19 @@ create_dot_old_files() {
 ########################################################################################################################
 handle_changed_k8s_configs() {
   local update_branch="$1"
+  local OLD_BRANCH="${update_branch##*-}"
 
-  DEFAULT_GIT_BRANCH="${update_branch##*-}"
+  log "Handling non Beluga-owned files in branch '${OLD_BRANCH}'"
 
-  log "Handling non Beluga-owned files in branch '${DEFAULT_GIT_BRANCH}'"
-
-  log "Reconciling '${K8S_CONFIGS_DIR}' diffs between '${DEFAULT_GIT_BRANCH}' and its new branch '${update_branch}'"
+  log "Reconciling '${K8S_CONFIGS_DIR}' diffs between '${OLD_BRANCH}' and its new branch '${update_branch}'"
   git checkout --quiet "${update_branch}"
-  new_files="$(git_diff "${DEFAULT_GIT_BRANCH}" HEAD "${K8S_CONFIGS_DIR}")"
+  new_files="$(git_diff "${OLD_BRANCH}" HEAD "${K8S_CONFIGS_DIR}")"
 
   if ! test "${new_files}"; then
-    log "No changed '${K8S_CONFIGS_DIR}' files to copy '${DEFAULT_GIT_BRANCH}' to its new branch '${update_branch}'"
+    log "No changed '${K8S_CONFIGS_DIR}' files to copy '${OLD_BRANCH}' to its new branch '${update_branch}'"
   fi
 
-  log "DEBUG: Found the following new files in branch '${DEFAULT_GIT_BRANCH}':"
+  log "DEBUG: Found the following new files in branch '${OLD_BRANCH}':"
   echo "${new_files}"
 
   KUSTOMIZATION_FILE="${CUSTOM_RESOURCES_REL_DIR}/kustomization.yaml"
@@ -547,11 +547,11 @@ handle_changed_k8s_configs() {
   for file in ${CUSTOM_RESOURCES_REL_DIR}/kustomization.yaml \
               ${CUSTOM_PATCHES_REL_FILE_NAME} \
               ${PING_CLOUD_REL_DIR}/${DESCRIPTOR_JSON_FILE_NAME}; do
-    if git show "${DEFAULT_GIT_BRANCH}:${file}" &> /dev/null; then
-      log "Copying file ${DEFAULT_GIT_BRANCH}:${file} to the same location on ${update_branch}"
-      git show "${DEFAULT_GIT_BRANCH}:${file}" > "${file}"
+    if git show "${OLD_BRANCH}:${file}" &> /dev/null; then
+      log "Copying file ${OLD_BRANCH}:${file} to the same location on ${update_branch}"
+      git show "${OLD_BRANCH}:${file}" > "${file}"
     else
-      log "${file} does not exist in default git branch ${DEFAULT_GIT_BRANCH}"
+      log "${file} does not exist in default git branch ${OLD_BRANCH}"
     fi
   done
 
@@ -559,29 +559,29 @@ handle_changed_k8s_configs() {
     # Ignore Beluga-owned files.
     new_file_basename="$(basename "${new_file}")"
     if echo "${beluga_owned_k8s_files}" | grep -q "@${new_file_basename}"; then
-      log "Ignoring file ${DEFAULT_GIT_BRANCH}:${new_file} since it is a Beluga-owned file"
+      log "Ignoring file ${OLD_BRANCH}:${new_file} since it is a Beluga-owned file"
       continue
     fi
 
     # Copy files in the custom-resources section (owned by PS/GSO) as is.
     new_file_dirname="$(dirname "${new_file}")"
     if test "${new_file_dirname##*/}" = "${CUSTOM_RESOURCES_DIR}"; then
-      log "Copying custom resource file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${update_branch}"
-      git show "${DEFAULT_GIT_BRANCH}:${new_file}" > "${new_file}"
+      log "Copying custom resource file ${OLD_BRANCH}:${new_file} to the same location on ${update_branch}"
+      git show "${OLD_BRANCH}:${new_file}" > "${new_file}"
       continue
     fi
 
     # Copy non-YAML files (owned by PS/GSO) to the same location on the new branch, e.g. sealingkey.pem
     new_file_ext="${new_file_basename##*.}"
     if test "${new_file_ext}" != 'yaml'; then
-      log "Copying non-YAML file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${update_branch}"
+      log "Copying non-YAML file ${OLD_BRANCH}:${new_file} to the same location on ${update_branch}"
       mkdir -p "${new_file_dirname}"
-      git show "${DEFAULT_GIT_BRANCH}:${new_file}" > "${new_file}"
+      git show "${OLD_BRANCH}:${new_file}" > "${new_file}"
       continue
     fi
 
-    log "Copying custom file ${DEFAULT_GIT_BRANCH}:${new_file} into directory ${CUSTOM_RESOURCES_REL_DIR}"
-    git show "${DEFAULT_GIT_BRANCH}:${new_file}" > "${CUSTOM_RESOURCES_REL_DIR}/${new_file_basename}"
+    log "Copying custom file ${OLD_BRANCH}:${new_file} into directory ${CUSTOM_RESOURCES_REL_DIR}"
+    git show "${OLD_BRANCH}:${new_file}" > "${CUSTOM_RESOURCES_REL_DIR}/${new_file_basename}"
 
     log "Adding new resource file ${new_file_basename} to ${KUSTOMIZATION_FILE}"
     new_resource_line="- ${new_file_basename}"
@@ -594,7 +594,7 @@ handle_changed_k8s_configs() {
     fi
   done
 
-  msg="Copied new '${K8S_CONFIGS_DIR}' files '${DEFAULT_GIT_BRANCH}' to its new branch '${update_branch}'"
+  msg="Copied new '${K8S_CONFIGS_DIR}' files '${OLD_BRANCH}' to its new branch '${update_branch}'"
   log "${msg}"
 
   git add .
@@ -818,17 +818,17 @@ REPO_STATUS=0
 
 for ENV in ${ENVIRONMENTS}; do
   test "${ENV}" = 'prod' &&
-      DEFAULT_GIT_BRANCH='master' ||
-      DEFAULT_GIT_BRANCH="${ENV}"
+      OLD_BRANCH='master' ||
+      OLD_BRANCH="${ENV}"
 
-  log "Validating that '${CLUSTER_STATE_REPO}' has branch: '${DEFAULT_GIT_BRANCH}'"
-  git checkout --quiet "${DEFAULT_GIT_BRANCH}"
+  log "Validating that '${CLUSTER_STATE_REPO}' has branch: '${OLD_BRANCH}'"
+  git checkout --quiet "${OLD_BRANCH}"
   if test $? -ne 0; then
-    log "git branch '${DEFAULT_GIT_BRANCH}' does not exist in '${CLUSTER_STATE_REPO}'"
+    log "git branch '${OLD_BRANCH}' does not exist in '${CLUSTER_STATE_REPO}'"
     REPO_STATUS=1
   fi
 
-  NEW_BRANCH="${NEW_VERSION}-${DEFAULT_GIT_BRANCH}"
+  NEW_BRANCH="${NEW_VERSION}-${OLD_BRANCH}"
   test "${NEW_BRANCHES}" &&
       NEW_BRANCHES="${NEW_BRANCHES} ${NEW_BRANCH}" ||
       NEW_BRANCHES="${NEW_BRANCH}"
@@ -873,8 +873,8 @@ get_min_required_secrets
 #   - Push code for all its regions into new branches
 for ENV in ${ENVIRONMENTS}; do # ENV loop
   test "${ENV}" = 'prod' &&
-      DEFAULT_GIT_BRANCH='master' ||
-      DEFAULT_GIT_BRANCH="${ENV}"
+      OLD_BRANCH='master' ||
+      OLD_BRANCH="${ENV}"
 
   if echo "${ENV}" | grep -q "${CUSTOMER_HUB}"; then
     IS_CUSTOMER_HUB=true
@@ -882,11 +882,11 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
     IS_CUSTOMER_HUB=false
   fi
 
-  NEW_BRANCH="${NEW_VERSION}-${DEFAULT_GIT_BRANCH}"
+  NEW_BRANCH="${NEW_VERSION}-${OLD_BRANCH}"
   log "Updating branch '${NEW_BRANCH}' for environment '${ENV}'"
 
-  log "Switching to branch ${DEFAULT_GIT_BRANCH} to determine deployed regions"
-  git checkout --quiet "${DEFAULT_GIT_BRANCH}"
+  log "Switching to branch ${OLD_BRANCH} to determine deployed regions"
+  git checkout --quiet "${OLD_BRANCH}"
 
   # Get the names of all the regional directories. Note that this may not be the actual region, rather it's the nick
   # name of the region.
