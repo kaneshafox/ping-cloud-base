@@ -495,20 +495,20 @@ create_dot_old_files() {
   git checkout --quiet "${old_branch}"
   old_secrets_dir="$(mktemp -d)"
 
-  for secrets_file_name in "${all_secrets[@]}"; do
-    log "Copying old ${secrets_file_name} in branch '${old_branch}'"
-    old_secrets_file="${old_secrets_dir}/${secrets_file_name}"
-    git show "${old_branch}:${secret_file}" >> "${old_secrets_file}"
+  for old_secrets_file in "${all_secrets[@]}"; do
+    log "Copying old ${old_secrets_file} in branch '${old_branch}'"
+    secret_path=$(find . -name "${old_secrets_file}" -type f)
+    git show "${old_branch}:${secret_path}" >> "${old_secrets_dir}"
   done
 
   # Switch to the new git branch and copy over the old secrets
   git checkout --quiet "${upgrade_branch}"
 
   secret_files="$(find "${old_secrets_dir}" -type f)"
-  for file in ${secret_files}; do
+  for secret_path in ${secret_files}; do
     file_name="$(basename "${file}")"
     dst_file="${K8S_CONFIGS_DIR}/${BASE_DIR}/${file_name}"
-    cp "${file}" "${dst_file}.old"
+    cp "${secret_path}" "${dst_file}.old"
   done
 
   log "Done creating .old files for ${all_secrets[*]}"
