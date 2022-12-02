@@ -325,9 +325,8 @@ get_base64_decode_opt() {
 get_secrets_file_json() {
   secrets_json="$1"
 
-  # Get the full path of the secrets.yaml file that has all ping-cloud secrets.
-  # Secrets yaml
-  secrets_yaml="$(find . -name secrets.yaml)"
+  # Get the path of the secrets.yaml file that has all ping-cloud secrets.
+  secrets_yaml="$(find . -name secrets.yaml -type f)"
 
   # If found, copy it to the provided output file in JSON format.
   # NOTE: it's safer to use kubectl here than a YAML parser like yq, whose options vary by version of the tool, OS, etc.
@@ -377,7 +376,7 @@ get_secret_from_file() {
 ########################################################################################################################
 get_min_required_secrets() {
   secrets_yaml_json="$(mktemp)"
-  log "Attempting to get ping-cloud secrets.yaml into ${ping_cloud_secrets_yaml}"
+  log "Attempting to get ping-cloud secrets.yaml into ${secrets_yaml_json}"
 
   get_secrets_file_json "${secrets_yaml_json}"
 
@@ -474,39 +473,36 @@ git_diff() {
 }
 
 ########################################################################################################################
-# Create secrets.yaml.old and sealed-secrets.yaml.old files if different between the default git branch and its new
+# Create .old secrets files for 
 # one. This makes it easier for the operator to see the differences in secrets between the two branches.
 #
 # Arguments
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 create_dot_old_files() {
-  NEW_BRANCH="$1"
+  local upgrade_branch="$1"
+  local all_secrets="${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}"
 
-  if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
-    DEFAULT_GIT_BRANCH="${CUSTOMER_HUB}"
+  if echo "${upgrade_branch}" | grep -q "${CUSTOMER_HUB}"; then
+    local old_branch="${CUSTOMER_HUB}"
   else
-    DEFAULT_GIT_BRANCH="${NEW_BRANCH##*-}"
+    local old_branch="${upgrade_branch##*-}"
   fi
 
-  log "Handling changes to ${SECRETS_FILE_NAME} and ${SEALED_SECRETS_FILE_NAME} in branch '${DEFAULT_GIT_BRANCH}'"
+  log "Handling changes to ${all_secrets} in branch '${DEFAULT_GIT_BRANCH}'"
 
-  # First switch to the default git branch.
-  git checkout --quiet "${DEFAULT_GIT_BRANCH}"
+  # First switch to the old git branch.
+  git checkout --quiet "${old_branch}"
   old_secrets_dir="$(mktemp -d)"
 
-  for secrets_file_name in "${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}"; do
-    log "Handling changes to ${secrets_file_name} in branch '${DEFAULT_GIT_BRANCH}'"
+  for secrets_file_name in ${all_secrets}; do
+    log "Copying old ${secrets_file_name} in branch '${old_branch}'"
     old_secrets_file="${old_secrets_dir}/${secrets_file_name}"
-    all_secret_files="$(git ls-files "${K8S_CONFIGS_DIR}/${BASE_DIR}/${secrets_file_name}")"
-    log "Found '${secrets_file_name}' files: ${all_secret_files}"
-    for secret_file in ${all_secret_files}; do
-      git show "${DEFAULT_GIT_BRANCH}:${secret_file}" >> "${old_secrets_file}"
-    done
+    git show "${old_branch}:${secret_file}" >> "${old_secrets_file}"
   done
 
-  # Switch to the new git branch and copy over the old secrets, if they're different.
-  git checkout --quiet "${NEW_BRANCH}"
+  # Switch to the new git branch and copy over the old secrets
+  git checkout --quiet "${upgrade_branch}"
 
   secret_files="$(find "${old_secrets_dir}" -type f)"
   for file in ${secret_files}; do
@@ -515,8 +511,7 @@ create_dot_old_files() {
     cp "${file}" "${dst_file}.old"
   done
 
-  msg="Done creating ${SECRETS_FILE_NAME}.old and ${SEALED_SECRETS_FILE_NAME}.old in branch '${NEW_BRANCH}'"
-  log "${msg}"
+  log "Done creating .old files for ${all_secrets}"
 
   git add .
   git commit --allow-empty -m "${msg}"
@@ -529,7 +524,7 @@ create_dot_old_files() {
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 handle_changed_k8s_configs() {
-  NEW_BRANCH="$1"
+  local NEW_BRANCH="$1"
 
   if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
     DEFAULT_GIT_BRANCH="${CUSTOMER_HUB}"
@@ -1119,8 +1114,8 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
 
   done # REGION loop for push
 
-  # Create .old files for secrets.yaml and sealed-secrets.yaml files so it's easy to see the differences in a pinch.
-  handle_changed_k8s_secrets "${NEW_BRANCH}" "${PRIMARY_REGION_DIR}"
+  # Create .old files for secrets files so it's easy to see the differences in a pinch.
+  create_dot_old_files "${NEW_BRANCH}" "${PRIMARY_REGION_DIR}"
 
   # If requested, copy new k8s-configs files from the default git branches into their corresponding new branches.
   if "${RESET_TO_DEFAULT}"; then
