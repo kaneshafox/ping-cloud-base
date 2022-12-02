@@ -23,7 +23,6 @@
 
 ### Global values and utility functions ###
 
-
 K8S_CONFIGS_DIR='k8s-configs'
 COMMON_DIR='common'
 BASE_DIR='base'
@@ -480,14 +479,9 @@ git_diff() {
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 create_dot_old_files() {
-  local upgrade_branch="$1"
+  local update_branch="$1"
+  local old_branch="${update_branch##*-}"
   local all_secrets=("${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}")
-
-  if echo "${upgrade_branch}" | grep -q "${CUSTOMER_HUB}"; then
-    local old_branch="${CUSTOMER_HUB}"
-  else
-    local old_branch="${upgrade_branch##*-}"
-  fi
 
   log "Handling changes to ${all_secrets[*]} in branch '${DEFAULT_GIT_BRANCH}'"
 
@@ -502,7 +496,7 @@ create_dot_old_files() {
   done
 
   # Switch to the new git branch and copy over the old secrets
-  git checkout --quiet "${upgrade_branch}"
+  git checkout --quiet "${update_branch}"
 
   secret_files="$(find "${old_secrets_dir}" -type f)"
   for secret_path in ${secret_files}; do
@@ -525,22 +519,18 @@ create_dot_old_files() {
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 handle_changed_k8s_configs() {
-  local NEW_BRANCH="$1"
+  local update_branch="$1"
 
-  if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
-    DEFAULT_GIT_BRANCH="${CUSTOMER_HUB}"
-  else
-    DEFAULT_GIT_BRANCH="${NEW_BRANCH##*-}"
-  fi
+  DEFAULT_GIT_BRANCH="${update_branch##*-}"
 
   log "Handling non Beluga-owned files in branch '${DEFAULT_GIT_BRANCH}'"
 
-  log "Reconciling '${K8S_CONFIGS_DIR}' diffs between '${DEFAULT_GIT_BRANCH}' and its new branch '${NEW_BRANCH}'"
-  git checkout --quiet "${NEW_BRANCH}"
+  log "Reconciling '${K8S_CONFIGS_DIR}' diffs between '${DEFAULT_GIT_BRANCH}' and its new branch '${update_branch}'"
+  git checkout --quiet "${update_branch}"
   new_files="$(git_diff "${DEFAULT_GIT_BRANCH}" HEAD "${K8S_CONFIGS_DIR}")"
 
   if ! test "${new_files}"; then
-    log "No changed '${K8S_CONFIGS_DIR}' files to copy '${DEFAULT_GIT_BRANCH}' to its new branch '${NEW_BRANCH}'"
+    log "No changed '${K8S_CONFIGS_DIR}' files to copy '${DEFAULT_GIT_BRANCH}' to its new branch '${update_branch}'"
   fi
 
   log "DEBUG: Found the following new files in branch '${DEFAULT_GIT_BRANCH}':"
@@ -558,7 +548,7 @@ handle_changed_k8s_configs() {
               ${CUSTOM_PATCHES_REL_FILE_NAME} \
               ${PING_CLOUD_REL_DIR}/${DESCRIPTOR_JSON_FILE_NAME}; do
     if git show "${DEFAULT_GIT_BRANCH}:${file}" &> /dev/null; then
-      log "Copying file ${DEFAULT_GIT_BRANCH}:${file} to the same location on ${NEW_BRANCH}"
+      log "Copying file ${DEFAULT_GIT_BRANCH}:${file} to the same location on ${update_branch}"
       git show "${DEFAULT_GIT_BRANCH}:${file}" > "${file}"
     else
       log "${file} does not exist in default git branch ${DEFAULT_GIT_BRANCH}"
@@ -576,7 +566,7 @@ handle_changed_k8s_configs() {
     # Copy files in the custom-resources section (owned by PS/GSO) as is.
     new_file_dirname="$(dirname "${new_file}")"
     if test "${new_file_dirname##*/}" = "${CUSTOM_RESOURCES_DIR}"; then
-      log "Copying custom resource file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${NEW_BRANCH}"
+      log "Copying custom resource file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${update_branch}"
       git show "${DEFAULT_GIT_BRANCH}:${new_file}" > "${new_file}"
       continue
     fi
@@ -584,7 +574,7 @@ handle_changed_k8s_configs() {
     # Copy non-YAML files (owned by PS/GSO) to the same location on the new branch, e.g. sealingkey.pem
     new_file_ext="${new_file_basename##*.}"
     if test "${new_file_ext}" != 'yaml'; then
-      log "Copying non-YAML file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${NEW_BRANCH}"
+      log "Copying non-YAML file ${DEFAULT_GIT_BRANCH}:${new_file} to the same location on ${update_branch}"
       mkdir -p "${new_file_dirname}"
       git show "${DEFAULT_GIT_BRANCH}:${new_file}" > "${new_file}"
       continue
@@ -604,7 +594,7 @@ handle_changed_k8s_configs() {
     fi
   done
 
-  msg="Copied new '${K8S_CONFIGS_DIR}' files '${DEFAULT_GIT_BRANCH}' to its new branch '${NEW_BRANCH}'"
+  msg="Copied new '${K8S_CONFIGS_DIR}' files '${DEFAULT_GIT_BRANCH}' to its new branch '${update_branch}'"
   log "${msg}"
 
   git add .
@@ -618,13 +608,9 @@ print_readme() {
   TAB='    '
   SEPARATOR='^'
 
-  for NEW_BRANCH in ${NEW_BRANCHES}; do
-    if echo "${NEW_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
-      ENV="${CUSTOMER_HUB}"
-    else
-      ENV="${NEW_BRANCH##*-}"
-    fi
-    BRANCH_LINE="${TAB} ${NEW_BRANCH} -> ${ENV}"
+  for branch in ${NEW_BRANCHES}; do
+    ENV="${branch##*-}"
+    BRANCH_LINE="${TAB} ${branch} -> ${ENV}"
     test "${ENV_BRANCH_MAP}" &&
         ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${BRANCH_LINE}" ||
         ENV_BRANCH_MAP="${BRANCH_LINE}"
