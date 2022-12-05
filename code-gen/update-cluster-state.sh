@@ -519,7 +519,6 @@ create_dot_old_files() {
 ########################################################################################################################
 handle_changed_k8s_configs() {
   local update_branch="$1"
-  local OLD_BRANCH="${update_branch##*-}"
 
   log "Handling non Beluga-owned files in branch '${OLD_BRANCH}'"
 
