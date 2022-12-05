@@ -53,6 +53,10 @@ CUSTOMER_HUB='customer-hub'
 
 PING_CLOUD_BASE='ping-cloud-base'
 
+# README global vars
+TAB='    '
+SEPARATOR='^'
+
 # If true, reset to the OOTB cluster state for the new version, i.e. perform no migration.
 RESET_TO_DEFAULT="${RESET_TO_DEFAULT:-false}"
 
@@ -602,17 +606,6 @@ handle_changed_k8s_configs() {
 # Prints a README containing next steps to take.
 ########################################################################################################################
 print_readme() {
-  TAB='    '
-  SEPARATOR='^'
-
-  for branch in ${NEW_BRANCHES}; do
-    ENV="${branch##*-}"
-    BRANCH_LINE="${TAB} ${branch} -> ${ENV}"
-    test "${ENV_BRANCH_MAP}" &&
-        ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${BRANCH_LINE}" ||
-        ENV_BRANCH_MAP="${BRANCH_LINE}"
-  done
-
   echo
   echo '################################################################################'
   echo '#                                    README                                    #'
@@ -1109,6 +1102,11 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
   fi
 
   log "Done updating branch '${NEW_BRANCH}' for '${ENV}'"
+
+  # Keep track of branches for the README
+  test "${ENV_BRANCH_MAP}" &&
+    ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${TAB}${OLD_BRANCH} -> ${NEW_BRANCH}" ||
+    ENV_BRANCH_MAP="${TAB} ${OLD_BRANCH} -> ${NEW_BRANCH}"
 done # ENV loop
 
 # Print a README of next steps to take.
