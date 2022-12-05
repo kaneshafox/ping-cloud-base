@@ -479,7 +479,6 @@ git_diff() {
 #   $1 -> The new branch for a default git branch.
 ########################################################################################################################
 create_dot_old_files() {
-  set -x
   local update_branch="$1"
   local all_secrets=("${SECRETS_FILE_NAME}" "${ORIG_SECRETS_FILE_NAME}" "${SEALED_SECRETS_FILE_NAME}")
 
@@ -510,7 +509,6 @@ create_dot_old_files() {
 
   git add .
   git commit --allow-empty -m "${msg}"
-  set +x
 }
 
 ########################################################################################################################
