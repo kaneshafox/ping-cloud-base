@@ -1104,9 +1104,12 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
   log "Done updating branch '${NEW_BRANCH}' for '${ENV}'"
 
   # Keep track of branches for the README
-  test "${ENV_BRANCH_MAP}" &&
-    ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${TAB}${OLD_BRANCH} -> ${NEW_BRANCH}" ||
-    ENV_BRANCH_MAP="${TAB} ${OLD_BRANCH} -> ${NEW_BRANCH}"
+  BRANCH_LINE="${TAB}${NEW_BRANCH} -> ${OLD_BRANCH}" 
+  if test "${ENV_BRANCH_MAP}"; then
+    ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${TAB}${BRANCH_LINE}"
+  else
+    ENV_BRANCH_MAP="${BRANCH_LINE}"
+  fi
 done # ENV loop
 
 # Print a README of next steps to take.
