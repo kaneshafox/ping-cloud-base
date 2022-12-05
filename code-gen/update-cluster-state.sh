@@ -316,6 +316,13 @@ get_base64_decode_opt() {
   fi
 }
 
+# Kubectl must have a connection to a cluster in order to run - currently used to convert yaml to json
+check_kubectl() {
+  if ! kubectl get ns > /dev/null 2>&1; then
+    log "Warn: You are not connected to a k8s cluster - automatic secret replacement may be affected"
+  fi
+}
+
 ########################################################################################################################
 # Gets the file that has all ping-cloud secrets. If the file is found, then its contents will be written to the provided
 # output file. If the git_rev revision is provided, then the secrets file will be obtained from that revision. Otherwise,
@@ -760,6 +767,8 @@ SCRIPT_NAME="$(basename "$0")"
 # Check required binaries.
 check_binaries 'kubectl' 'git' 'base64' 'jq' 'envsubst' 'rsync' || exit 1
 
+check_kubectl
+
 # Verify that required environment variable NEW_VERSION is set.
 if test -z "${NEW_VERSION}"; then
   log 'NEW_VERSION environment variable must be set before invoking this script'
@@ -1106,7 +1115,7 @@ for ENV in ${ENVIRONMENTS}; do # ENV loop
   # Keep track of branches for the README
   BRANCH_LINE="${TAB}${NEW_BRANCH} -> ${OLD_BRANCH}" 
   if test "${ENV_BRANCH_MAP}"; then
-    ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${TAB}${BRANCH_LINE}"
+    ENV_BRANCH_MAP="${ENV_BRANCH_MAP}${SEPARATOR}${BRANCH_LINE}"
   else
     ENV_BRANCH_MAP="${BRANCH_LINE}"
   fi
