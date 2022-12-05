@@ -325,8 +325,7 @@ check_kubectl() {
 
 ########################################################################################################################
 # Gets the file that has all ping-cloud secrets. If the file is found, then its contents will be written to the provided
-# output file. If the git_rev revision is provided, then the secrets file will be obtained from that revision. Otherwise,
-# it will be obtained from the HEAD of the current revision.
+# output file. The secrets file is obtained from the currently checked out branch when the method runs.
 #
 # Arguments
 #   $1 secrets_json -> The output file to which to write secrets.yaml in json format.
@@ -346,13 +345,7 @@ get_secrets_file_json() {
       log "Unable to parse secrets from file ${secrets_yaml}"
     fi
   else
-    log "ping-cloud secrets.yaml file not found in revision: ${git_rev:-HEAD}"
-  fi
-
-  # Switch back to previous git revision.
-  if test "${git_rev}"; then
-    log "Switching back to previous git revision"
-    git checkout --quiet -
+    log "ping-cloud secrets.yaml file not found."
   fi
 }
 
