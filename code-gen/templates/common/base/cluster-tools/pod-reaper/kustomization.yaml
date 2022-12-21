@@ -6,6 +6,8 @@ resources:
 
 generatorOptions:
   disableNameSuffixHash: false
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 
 configMapGenerator:
 - name: pod-reaper-environment-variables
