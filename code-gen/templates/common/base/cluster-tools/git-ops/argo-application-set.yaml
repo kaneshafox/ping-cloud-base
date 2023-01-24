@@ -28,8 +28,6 @@ spec:
         repoURL: ${CLUSTER_STATE_REPO_URL}
         targetRevision: ${CLUSTER_STATE_REPO_BRANCH}
         path: '{{path}}'
-        plugin:
-          name: git-ops-command
       destination:
         server: https://kubernetes.default.svc
       ignoreDifferences:
