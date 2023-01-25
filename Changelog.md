@@ -7,7 +7,7 @@
 - Move Descriptor Validator to git-ops-command.sh
 - Upgrade nginx-ingress-controller to v1.5.1
 - Add base & region values.yaml files for Helm migration
-- Add ArgoCD application set definition for Helm migration
+- Add ArgoCD application set definition for microservice architecture
 
 _Changes:_
 
