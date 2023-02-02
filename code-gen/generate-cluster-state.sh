@@ -539,6 +539,35 @@ set_ssh_key_pair() {
   fi
 }
 
+organize_code_for_csr() {
+  APP_PATHS=$(find "${TEMPLATES_HOME}" -type d -depth 1 ! -path '*/cde' ! -path '*/common' ! -path '*/customer-hub' ! -path '*/fluxcd')
+
+  for APP_PATH in ${APP_PATHS}; do
+    APP_NAME=$(basename "${APP_PATH}")
+
+    # source the config or continue to next app if config not there
+    source "${APP_PATH}/config.sh" || continue
+
+    echo ---
+    echo "For app '${APP_NAME}':"
+    echo "Using CDE_DEPLOY: ${CDE_DEPLOY}"
+    echo "Using CHUB_DEPLOY:  ${CHUB_DEPLOY}"
+    echo
+
+    if (test "${ENV}" = "${CUSTOMER_HUB}" && ${CHUB_DEPLOY}) || (test "${ENV}" != "${CUSTOMER_HUB}" && ${CDE_DEPLOY}); then
+      APP_TARGET_DIR=${ENV_DIR}/${APP_NAME}
+      mkdir -p "${APP_TARGET_DIR}"
+
+      cd "${APP_PATH}"
+      rsync -rR * --exclude config.sh "${APP_TARGET_DIR}"
+      cd - >/dev/null 2>&1
+
+      # Rename to the actual region nick name.
+      mv "${APP_TARGET_DIR}/region" "${APP_TARGET_DIR}/${REGION_NICK_NAME}"
+    fi
+  done
+}
+
 # Checking required tools and environment variables.
 check_binaries "openssl" "ssh-keygen" "ssh-keyscan" "base64" "envsubst" "git" "aws" "rsync"
 HAS_REQUIRED_TOOLS=${?}
@@ -553,7 +582,10 @@ if test -z "${IS_MULTI_CLUSTER}"; then
   IS_MULTI_CLUSTER=false
 fi
 
-# Print out the values provided used for each variable.
+
+########################################################################################################################
+# Print out the initial values provided for each variable.
+########################################################################################################################
 echo "Initial TENANT_NAME: ${TENANT_NAME}"
 echo "Initial SIZE: ${SIZE}"
 
@@ -613,6 +645,11 @@ echo "Initial SLACK_CHANNEL: ${SLACK_CHANNEL}"
 echo "Initial NON_GA_SLACK_CHANNEL: ${NON_GA_SLACK_CHANNEL}"
 echo "Initial PROM_SLACK_CHANNEL: ${PROM_SLACK_CHANNEL}"
 echo ---
+
+
+########################################################################################################################
+# Set the values for each variable.
+########################################################################################################################
 
 # Use defaults for other variables, if not present.
 export IS_BELUGA_ENV="${IS_BELUGA_ENV:-false}"
@@ -709,7 +746,7 @@ export ECR_REGISTRY_NAME='public.ecr.aws/r2h3l6e4'
 export PING_CLOUD_NAMESPACE='ping-cloud'
 export MYSQL_DATABASE='pingcentral'
 
-# Set Slack-related environmets variables and override it's values depending on IS_GA value.
+# Set Slack-related environment variables and override it's values depending on IS_GA value.
 get_is_ga_variable '/pcpt/stage/is-ga'
 export NON_GA_SLACK_CHANNEL="${NON_GA_SLACK_CHANNEL:-nowhere}"
 # If IS_GA=true, use default Slack channel; if IS_GA=false, use NON_GA_SLACK_CHANNEL value as Slack channel.
@@ -721,7 +758,70 @@ else
   export PROM_SLACK_CHANNEL="${PROM_SLACK_CHANNEL:-${NON_GA_SLACK_CHANNEL}}"
 fi
 
-# Print out the values being used for each variable.
+NEW_RELIC_LICENSE_KEY="${NEW_RELIC_LICENSE_KEY:-ssm://pcpt/sre/new-relic/java-agent-license-key}"
+if [[ ${NEW_RELIC_LICENSE_KEY} == "ssm://"* ]]; then
+  if ! ssm_value=$(get_ssm_value "${NEW_RELIC_LICENSE_KEY#ssm:/}"); then
+    echo "Warn: ${ssm_value}"
+    echo "Setting NEW_RELIC_LICENSE_KEY to unused"
+    NEW_RELIC_LICENSE_KEY="unused"
+  else
+    NEW_RELIC_LICENSE_KEY="${ssm_value}"
+  fi
+fi
+
+export NEW_RELIC_LICENSE_KEY_BASE64=$(base64_no_newlines "${NEW_RELIC_LICENSE_KEY}")
+
+# Adding an ArgoCD notification slack token
+ARGOCD_SLACK_TOKEN_SSM_PATH="${ARGOCD_SLACK_TOKEN_SSM_PATH:-ssm://pcpt/argocd/notification/slack/access_token}"
+if ! ssm_value=$(get_ssm_value "${ARGOCD_SLACK_TOKEN_SSM_PATH#ssm:/}"); then
+  echo "Warn: ${ssm_value}"
+  echo "ARGOCD_SLACK_TOKEN is unset, slack notification and argo-events will not work"
+  echo "Using default invalid token"
+  ARGOCD_SLACK_TOKEN="using_default_invalid_token"
+else
+  ARGOCD_SLACK_TOKEN="${ssm_value}"
+fi
+
+export ARGOCD_SLACK_TOKEN_BASE64=$(base64_no_newlines "${ARGOCD_SLACK_TOKEN}")
+
+set_ssh_key_pair
+
+# Get the known hosts contents for the cluster state repo host to pass it into the CD container.
+parse_url "${CLUSTER_STATE_REPO_URL}"
+echo "Obtaining known_hosts contents for cluster state repo host: ${URL_HOST}"
+
+if test ! "${KNOWN_HOSTS_CLUSTER_STATE_REPO}"; then
+  # For GitHub, use the 'ecdsa' SSH host key type. The CD tool doesn't work with RSA keys. For all others, use 'rsa'.
+  # FIXME: make SSH_HOST_KEY_TYPE overridable in the future. Ref: "man ssh-keyscan".
+  if echo "${URL_HOST}" | grep -q 'github.com'; then
+    SSH_HOST_KEY_TYPE='ecdsa'
+  else
+    SSH_HOST_KEY_TYPE='rsa'
+  fi
+  KNOWN_HOSTS_CLUSTER_STATE_REPO="$(ssh-keyscan -t "${SSH_HOST_KEY_TYPE}" -H "${URL_HOST}" 2>/dev/null)"
+fi
+export KNOWN_HOSTS_CLUSTER_STATE_REPO
+
+get_is_myping_variable '/pcpt/orch-api/is-myping'
+
+# Set some product specific variables
+export USER_BASE_DN="${USER_BASE_DN:-dc=example,dc=com}"
+export USER_BASE_DN_2="${USER_BASE_DN_2}"
+export USER_BASE_DN_3="${USER_BASE_DN_3}"
+export USER_BASE_DN_4="${USER_BASE_DN_4}"
+export USER_BASE_DN_5="${USER_BASE_DN_5}"
+
+export PA_WAS_GCOPTION='-XX:+UseParallelGC'
+export PA_MIN_HEAP=1024m
+export PA_MAX_HEAP=1024m
+export PA_MIN_YGEN=512m
+export PA_MAX_YGEN=512m
+export PA_GCOPTION='-XX:+UseParallelGC'
+
+
+########################################################################################################################
+# Print out the final value being used for each variable.
+########################################################################################################################
 echo "Using TENANT_NAME: ${TENANT_NAME}"
 echo "Using SIZE: ${SIZE}"
 
@@ -736,6 +836,7 @@ echo "Using TENANT_DOMAIN: ${TENANT_DOMAIN}"
 echo "Using GLOBAL_TENANT_DOMAIN: ${GLOBAL_TENANT_DOMAIN}"
 echo "Using PRIMARY_TENANT_DOMAIN: ${PRIMARY_TENANT_DOMAIN}"
 echo "Using SECONDARY_TENANT_DOMAINS: ${SECONDARY_TENANT_DOMAINS}"
+echo "Using PING_CLOUD_NAMESPACE: ${PING_CLOUD_NAMESPACE}"
 
 echo "Using CLUSTER_STATE_REPO_URL: ${CLUSTER_STATE_REPO_URL}"
 echo "Using SERVER_PROFILE_URL: ${SERVER_PROFILE_URL}"
@@ -743,6 +844,8 @@ echo "Using CLUSTER_STATE_REPO_PATH: ${REGION_NICK_NAME}"
 
 echo "Using ARTIFACT_REPO_URL: ${ARTIFACT_REPO_URL}"
 echo "Using PING_ARTIFACT_REPO_URL: ${PING_ARTIFACT_REPO_URL}"
+echo "Using LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
+echo "Using BACKUP_URL: ${BACKUP_URL}"
 
 echo "Using MYSQL_SERVICE_HOST: ${MYSQL_SERVICE_HOST}"
 echo "Using MYSQL_USER: ${MYSQL_USER}"
@@ -775,60 +878,23 @@ echo "Using NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY
 
 echo "Using SLACK_CHANNEL: ${SLACK_CHANNEL}"
 echo "Using PROM_SLACK_CHANNEL: ${PROM_SLACK_CHANNEL}"
+
+echo "Using USER_BASE_DN: ${USER_BASE_DN}"
 echo ---
 
-NEW_RELIC_LICENSE_KEY="${NEW_RELIC_LICENSE_KEY:-ssm://pcpt/sre/new-relic/java-agent-license-key}"
-if [[ ${NEW_RELIC_LICENSE_KEY} == "ssm://"* ]]; then
-  if ! ssm_value=$(get_ssm_value "${NEW_RELIC_LICENSE_KEY#ssm:/}"); then
-    echo "Warn: ${ssm_value}"
-    echo "Setting NEW_RELIC_LICENSE_KEY to unused"
-    NEW_RELIC_LICENSE_KEY="unused"
-  else
-    NEW_RELIC_LICENSE_KEY="${ssm_value}"
-  fi
-fi
 
-export NEW_RELIC_LICENSE_KEY_BASE64=$(base64_no_newlines "${NEW_RELIC_LICENSE_KEY}")
+########################################################################################################################
+# Set variables for massaging files into correct structure for CSR
+########################################################################################################################
 
 TEMPLATES_HOME="${SCRIPT_HOME}/templates"
-BASE_TOOLS_REL_DIR="base/cluster-tools"
-BASE_PING_CLOUD_REL_DIR="base/ping-cloud"
+#BASE_TOOLS_REL_DIR="base/cluster-tools"
+#BASE_PING_CLOUD_REL_DIR="base/ping-cloud"
 REGION_DIR="${TEMPLATES_HOME}/region"
 
 COMMON_TEMPLATES_DIR="${TEMPLATES_HOME}/common"
 CHUB_TEMPLATES_DIR="${TEMPLATES_HOME}/customer-hub"
 CDE_TEMPLATES_DIR="${TEMPLATES_HOME}/cde"
-
-#Adding an ArgoCD notification slack token
-ARGOCD_SLACK_TOKEN_SSM_PATH="${ARGOCD_SLACK_TOKEN_SSM_PATH:-ssm://pcpt/argocd/notification/slack/access_token}"
-if ! ssm_value=$(get_ssm_value "${ARGOCD_SLACK_TOKEN_SSM_PATH#ssm:/}"); then
-  echo "Warn: ${ssm_value}"
-  echo "ARGOCD_SLACK_TOKEN is unset, slack notification and argo-events will not work"
-  echo "Using default invalid token"
-  ARGOCD_SLACK_TOKEN="using_default_invalid_token"
-else
-  ARGOCD_SLACK_TOKEN="${ssm_value}"
-fi
-
-export ARGOCD_SLACK_TOKEN_BASE64=$(base64_no_newlines "${ARGOCD_SLACK_TOKEN}")
-
-set_ssh_key_pair
-
-# Get the known hosts contents for the cluster state repo host to pass it into the CD container.
-parse_url "${CLUSTER_STATE_REPO_URL}"
-echo "Obtaining known_hosts contents for cluster state repo host: ${URL_HOST}"
-
-if test ! "${KNOWN_HOSTS_CLUSTER_STATE_REPO}"; then
-  # For GitHub, use the 'ecdsa' SSH host key type. The CD tool doesn't work with RSA keys. For all others, use 'rsa'.
-  # FIXME: make SSH_HOST_KEY_TYPE overridable in the future. Ref: "man ssh-keyscan".
-  if echo "${URL_HOST}" | grep -q 'github.com'; then
-    SSH_HOST_KEY_TYPE='ecdsa'
-  else
-    SSH_HOST_KEY_TYPE='rsa'
-  fi
-  KNOWN_HOSTS_CLUSTER_STATE_REPO="$(ssh-keyscan -t "${SSH_HOST_KEY_TYPE}" -H "${URL_HOST}" 2>/dev/null)"
-fi
-export KNOWN_HOSTS_CLUSTER_STATE_REPO
 
 # Delete existing target directory and re-create it
 rm -rf "${TARGET_DIR}"
@@ -871,16 +937,16 @@ echo "${PING_CLOUD_BASE_COMMIT_SHA}" > "${TARGET_DIR}/pcb-commit-sha.txt"
 ALL_ENVIRONMENTS='dev test stage prod customer-hub'
 ENVIRONMENTS="${ENVIRONMENTS:-${ALL_ENVIRONMENTS}}"
 
-export CLUSTER_STATE_REPO_URL="${CLUSTER_STATE_REPO_URL}"
-
-get_is_myping_variable '/pcpt/orch-api/is-myping'
-
 # The ENVIRONMENTS variable can either be the CDE names (e.g. dev, test, stage, prod) or the CHUB name "customer-hub",
 # or the corresponding branch names (e.g. v1.8.0-dev, v1.8.0-test, v1.8.0-stage, v1.8.0-master, v1.8.0-customer-hub).
 # We must handle both cases. Note that the 'prod' environment will have a branch name suffix of 'master'.
 for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
 # Run in a sub-shell so the current shell is not polluted with environment variables.
 (
+  ######################################################################################################################
+  # Set the values for each environment specific variable.
+  ######################################################################################################################
+
   if echo "${ENV_OR_BRANCH}" | grep -q "${CUSTOMER_HUB}"; then
     GIT_BRANCH="${CUSTOMER_HUB}"
 
@@ -939,12 +1005,6 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   fi
   export LETS_ENCRYPT_SERVER="${LETS_ENCRYPT_SERVER}"
 
-  export USER_BASE_DN="${USER_BASE_DN:-dc=example,dc=com}"
-  export USER_BASE_DN_2="${USER_BASE_DN_2}"
-  export USER_BASE_DN_3="${USER_BASE_DN_3}"
-  export USER_BASE_DN_4="${USER_BASE_DN_4}"
-  export USER_BASE_DN_5="${USER_BASE_DN_5}"
-
   # Set PF variables based on ENV
   if echo "${LETS_ENCRYPT_SERVER}" | grep -q 'staging'; then
     export PF_PD_BIND_PORT=1389
@@ -956,44 +1016,35 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
     export PF_PD_BIND_USESSL=true
   fi
 
-  # Update the PF JVM limits based on environment.
+  # Update the product specific variables based on environment.
   case "${ENV}" in
     dev | test)
+      # Set PF variables
       export PF_MIN_HEAP=1536m
       export PF_MAX_HEAP=1536m
       export PF_MIN_YGEN=768m
       export PF_MAX_YGEN=768m
-      ;;
-    stage | prod | customer-hub)
-      export PF_MIN_HEAP=3072m
-      export PF_MAX_HEAP=3072m
-      export PF_MIN_YGEN=1536m
-      export PF_MAX_YGEN=1536m
-      ;;
-  esac
 
-  # Set PA variables
-  case "${ENV}" in
-    dev | test)
+      # Set PA variables
       export PA_WAS_MIN_HEAP=1024m
       export PA_WAS_MAX_HEAP=1024m
       export PA_WAS_MIN_YGEN=512m
       export PA_WAS_MAX_YGEN=512m
       ;;
     stage | prod | customer-hub)
+      # Set PF variables
+      export PF_MIN_HEAP=3072m
+      export PF_MAX_HEAP=3072m
+      export PF_MIN_YGEN=1536m
+      export PF_MAX_YGEN=1536m
+
+      # Set PA variables
       export PA_WAS_MIN_HEAP=2048m
       export PA_WAS_MAX_HEAP=2048m
       export PA_WAS_MIN_YGEN=1024m
       export PA_WAS_MAX_YGEN=1024m
       ;;
   esac
-  export PA_WAS_GCOPTION='-XX:+UseParallelGC'
-
-  export PA_MIN_HEAP=1024m
-  export PA_MAX_HEAP=1024m
-  export PA_MIN_YGEN=512m
-  export PA_MAX_YGEN=512m
-  export PA_GCOPTION='-XX:+UseParallelGC'
 
   "${IS_BELUGA_ENV}" &&
       export CLUSTER_NAME="${TENANT_NAME}" ||
@@ -1020,22 +1071,25 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   # Remove s3:// prefix if present
   export PGO_BACKUP_BUCKET_NAME=${PGO_BACKUP_BUCKET_NAME#s3://}
 
+  ######################################################################################################################
+  # Print out the final value being used for each environment specific variable.
+  ######################################################################################################################
   echo ---
-  echo "For environment ${ENV}, using variable values:"
-  echo "CLUSTER_STATE_REPO_BRANCH: ${CLUSTER_STATE_REPO_BRANCH}"
-  echo "ENVIRONMENT_TYPE: ${ENVIRONMENT_TYPE}"
-  echo "KUSTOMIZE_BASE: ${KUSTOMIZE_BASE}"
-  echo "LETS_ENCRYPT_SERVER: ${LETS_ENCRYPT_SERVER}"
-  echo "USER_BASE_DN: ${USER_BASE_DN}"
-  echo "CLUSTER_NAME: ${CLUSTER_NAME}"
-  echo "PING_CLOUD_NAMESPACE: ${PING_CLOUD_NAMESPACE}"
-  echo "DNS_ZONE: ${DNS_ZONE}"
-  echo "PRIMARY_DNS_ZONE: ${PRIMARY_DNS_ZONE}"
-  echo "LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
-  echo "BACKUP_URL: ${BACKUP_URL}"
-  echo "PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
-  echo "IRSA_PING_ANNOTATION_KEY_VALUE: ${IRSA_PING_ANNOTATION_KEY_VALUE}"
-  echo "NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
+  echo "For environment ${ENV}:"
+  echo "Using CLUSTER_STATE_REPO_BRANCH: ${CLUSTER_STATE_REPO_BRANCH}"
+  echo "Using ENVIRONMENT_TYPE: ${ENVIRONMENT_TYPE}"
+  echo "Using KUSTOMIZE_BASE: ${KUSTOMIZE_BASE}"
+  echo "Using LETS_ENCRYPT_SERVER: ${LETS_ENCRYPT_SERVER}"
+  echo "Using CLUSTER_NAME: ${CLUSTER_NAME}"
+  echo "Using DNS_ZONE: ${DNS_ZONE}"
+  echo "Using PRIMARY_DNS_ZONE: ${PRIMARY_DNS_ZONE}"
+  echo "Using PGO_BACKUP_BUCKET_NAME: ${PGO_BACKUP_BUCKET_NAME}"
+  echo "Using IRSA_PING_ANNOTATION_KEY_VALUE: ${IRSA_PING_ANNOTATION_KEY_VALUE}"
+  echo "Using NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
+
+  ######################################################################################################################
+  # Massage files into correct structure for push-cluster-state script
+  ######################################################################################################################
 
   # Build the kustomization file for the bootstrap tools for each environment
   echo "Generating bootstrap yaml for ${ENV}"
@@ -1073,8 +1127,11 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   # Rename to the actual region nick name.
   mv "${ENV_DIR}/region" "${ENV_DIR}/${REGION_NICK_NAME}"
 
+  # Massage files from new helm/kustomize architecture
+  organize_code_for_csr
+
   substitute_vars "${ENV_DIR}" "${REPO_VARS}" secrets.yaml env_vars values.yaml
-  # TODO: This duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV in values files only
+  # TODO: These duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV in values files only
   #  clean this up with PDO-4842 when all apps are migrated to values files by adding IS_BELUGA_ENV to DEFAULT_VARS
   #  and redoing how derived variables are set
   substitute_vars "${ENV_DIR}" "${REPO_VARS}" values.yaml
