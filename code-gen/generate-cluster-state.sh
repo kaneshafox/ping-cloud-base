@@ -905,7 +905,6 @@ BOOTSTRAP_SHORT_DIR='fluxcd'
 BOOTSTRAP_DIR="${TARGET_DIR}/${BOOTSTRAP_SHORT_DIR}"
 
 CLUSTER_STATE_REPO_DIR="${TARGET_DIR}/cluster-state"
-K8S_CONFIGS_DIR="${CLUSTER_STATE_REPO_DIR}/k8s-configs"
 GIT_OPS_VALIDATION_FOLDER="${K8S_CONFIGS_DIR}/validation"
 
 PROFILE_REPO_DIR="${TARGET_DIR}/profile-repo"
@@ -915,7 +914,7 @@ CUSTOMER_HUB='customer-hub'
 PING_CENTRAL='pingcentral'
 
 mkdir -p "${BOOTSTRAP_DIR}"
-mkdir -p "${K8S_CONFIGS_DIR}"
+mkdir -p "${CLUSTER_STATE_REPO_DIR}"
 mkdir -p "${PROFILE_REPO_DIR}"
 mkdir -p "${GIT_OPS_VALIDATION_FOLDER}"
 
@@ -1106,12 +1105,15 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   # Copy the shared cluster tools and Ping yaml templates into their target directories
   echo "Generating tools and ping yaml for ${ENV}"
 
-  ENV_DIR="${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}"
+  ENV_DIR="${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}"
   mkdir -p "${ENV_DIR}"
+
+  K8S_CONFIGS_DIR="${ENV_DIR}/k8s-configs"
+  mkdir -p "${K8S_CONFIGS_DIR}"
 
   # Copy the common templates first.
   cd "${COMMON_TEMPLATES_DIR}"
-  rsync -rR * "${ENV_DIR}"
+  rsync -rR * "${K8S_CONFIGS_DIR}"
   cd - >/dev/null 2>&1
 
   # Overlay the CHUB or CDE specific templates next.
@@ -1121,11 +1123,11 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
     cd "${CDE_TEMPLATES_DIR}"
   fi
 
-  rsync -rR * "${ENV_DIR}"
+  rsync -rR * "${K8S_CONFIGS_DIR}"
   cd - >/dev/null 2>&1
 
   # Rename to the actual region nick name.
-  mv "${ENV_DIR}/region" "${ENV_DIR}/${REGION_NICK_NAME}"
+  mv "${K8S_CONFIGS_DIR}/region" "${K8S_CONFIGS_DIR}/${REGION_NICK_NAME}"
 
   # Massage files from new helm/kustomize architecture
   organize_code_for_csr
