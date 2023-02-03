@@ -281,17 +281,17 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
     commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi
 
-#  if ! ${DISABLE_GIT}; then
-#    echo "Adding commit to repo: ${commit_msg}"
-#    git add .
-#    git commit --allow-empty -m "${commit_msg}"
-#  fi
+  if ! ${DISABLE_GIT}; then
+    echo "Adding commit to repo: ${commit_msg}"
+    git add .
+    git commit --allow-empty -m "${commit_msg}"
+  fi
 
-#  if "${PUSH_TO_SERVER}" && ! "${DISABLE_GIT}"; then
-#    push_with_retries "${PUSH_RETRY_COUNT}" "${GIT_BRANCH}"
-#  else
-#    echo "Not pushing changes to the server for branch '${GIT_BRANCH}' - PUSH_TO_SERVER set to false or DISABLE_GIT set to true"
-#  fi
+  if "${PUSH_TO_SERVER}" && ! "${DISABLE_GIT}"; then
+    push_with_retries "${PUSH_RETRY_COUNT}" "${GIT_BRANCH}"
+  else
+    echo "Not pushing changes to the server for branch '${GIT_BRANCH}' - PUSH_TO_SERVER set to false or DISABLE_GIT set to true"
+  fi
 
   if ! "${QUIET}"; then
     echo
