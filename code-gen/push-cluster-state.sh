@@ -63,50 +63,6 @@ dir_deep_clean() {
 }
 
 ########################################################################################################################
-# Organizes the Kubernetes configuration files to push into the cluster state repo for a specific Customer Deployment
-# Environment (CDE) or customer-hub.
-#
-# Arguments
-#   ${1} -> The directory where cluster state code was generated, i.e. the TARGET_DIR to generate-cluster-state.sh.
-#   ${2} -> The name of the directory under which the sources for the environment may be found in generated code.
-#   ${3} -> The environment type, i.e. dev, test, stage or prod.
-#   ${4} -> The output empty directory into which to organize the code to push for the environment and region.
-#   ${5} -> Flag indicating whether or not the provided region is the primary region.
-########################################################################################################################
-organize_code_for_environment() {
-  generated_code_dir="${1}"
-  src_rel_dir_for_env="${2}"
-  env="${3}"
-  out_dir="${4}"
-  is_primary="${5}"
-
-  src_profiles_dir="${generated_code_dir}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${src_rel_dir_for_env}"
-  dst_profiles_dir="${out_dir}/${PROFILES_DIR}"
-
-  src_k8s_dir="${generated_code_dir}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${src_rel_dir_for_env}"
-  dst_k8s_dir="${out_dir}/${K8S_CONFIGS_DIR}"
-
-  # shellcheck disable=SC2010
-  region="$(ls "${src_k8s_dir}" | grep -v "${BASE_DIR}")"
-
-  "${is_primary}" && type='primary' || type='secondary'
-  echo "Organizing code for environment '${env}' into '${out_dir}' for ${type} region '${region}'"
-
-  # Copy the environment-specific profiles and k8s-configs files into the destination directory for the environment.
-  # Also, copy the common files (e.g. .gitignore, update-cluster-state-wrapper.sh, etc.) to the output directory.
-  cp -pr "${src_profiles_dir}"/. "${dst_profiles_dir}"
-  find "${generated_code_dir}/${PROFILE_REPO_DIR}" -type f -mindepth 1 -maxdepth 1 -exec cp {} "${out_dir}" \;
-
-  cp -pr "${src_k8s_dir}"/. "${dst_k8s_dir}"
-  find "${generated_code_dir}/${CLUSTER_STATE_REPO_DIR}" -type f -mindepth 1 -maxdepth 1 -exec cp {} "${out_dir}" \;
-
-  # Last but not least, stick the version of Beluga into a version.txt file.
-  beluga_version="$(find "${src_k8s_dir}" -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
-  echo "Beluga version is ${beluga_version} for environment ${env}"
-  echo "${beluga_version}" > "${out_dir}"/version.txt
-}
-
-########################################################################################################################
 # Attempt to push to the provided branch on the cluster state repo up to the specified number of retries.
 #
 # Arguments
@@ -225,9 +181,6 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
 
   echo "Processing branch '${GIT_BRANCH}' for environment '${ENV}' and default branch '${DEFAULT_CDE_BRANCH}'"
 
-  ENV_CODE_DIR=$(mktemp -d)
-  organize_code_for_environment "${GENERATED_CODE_DIR}" "${ENV_OR_BRANCH}" "${ENV}" "${ENV_CODE_DIR}" "${IS_PRIMARY}"
-
   if ! ${DISABLE_GIT}; then
     # Check if the branch exists locally. If so, switch to it.
     if git rev-parse --verify "${GIT_BRANCH}" &> /dev/null; then
@@ -273,24 +226,25 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
 
     if "${IS_PROFILE_REPO}" || "${INCLUDE_PROFILES_IN_CSR}"; then
       # Copy the base files into the environment directory.
-      src_dir="${ENV_CODE_DIR}"
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
       echo "Copying base files from ${src_dir} to ${PWD}"
       cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/version.txt ./
       cp "${src_dir}"/update-profile-wrapper.sh ./
 
       # Copy the profiles.
-      src_dir="${ENV_CODE_DIR}/${PROFILES_DIR}"
-      echo "Copying ${src_dir} to ${PWD}"
-      cp -pr "${src_dir}" ./
+      mkdir -p "${PROFILES_DIR}"
+
+      # Copy the profiles.
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/"
+      echo "Copying ${src_dir} to ${PROFILES_DIR}"
+      find "${src_dir}" -type d -maxdepth 1 -exec cp -pr {} "${PROFILES_DIR}"/ \;
     fi
 
     if ! "${IS_PROFILE_REPO}"; then
       # Copy the base files into the environment directory.
-      src_dir="${ENV_CODE_DIR}"
+      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}"
       echo "Copying base files from ${src_dir} to ${PWD}"
       cp "${src_dir}"/.gitignore ./
-      cp "${src_dir}"/version.txt ./
       cp "${src_dir}"/update-cluster-state-wrapper.sh ./
 
       # Copy the k8s-configs.
@@ -302,18 +256,24 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
       find "${src_dir}" -type f -maxdepth 1 -exec cp {} "${K8S_CONFIGS_DIR}" \;
 
       # Copy the k8s-configs/base directory, which is common code for all regions.
-      src_dir="${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}/${BASE_DIR}"
+      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}/${BASE_DIR}"
       echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
       cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
     fi
+
+    # Last but not least, stick the version of Beluga into a version.txt file.
+    beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}" \
+      -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
+    echo "Beluga version is ${beluga_version} for environment ${ENV}"
+    echo "${beluga_version}" > version.txt
   fi
 
   if "${IS_PROFILE_REPO}"; then
     commit_msg="Initial commit of profile code for environment '${ENV}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   else
     # shellcheck disable=SC2010
-    region="$(ls "${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}" | grep -v "${BASE_DIR}")"
-    src_dir="${ENV_CODE_DIR}/${K8S_CONFIGS_DIR}/${region}"
+    region="$(ls "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}" | grep -v "${BASE_DIR}")"
+    src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}/${region}"
 
     echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
     cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
@@ -321,17 +281,17 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
     commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi
 
-  if ! ${DISABLE_GIT}; then
-    echo "Adding commit to repo: ${commit_msg}"
-    git add .
-    git commit --allow-empty -m "${commit_msg}"
-  fi
+#  if ! ${DISABLE_GIT}; then
+#    echo "Adding commit to repo: ${commit_msg}"
+#    git add .
+#    git commit --allow-empty -m "${commit_msg}"
+#  fi
 
-  if "${PUSH_TO_SERVER}" && ! "${DISABLE_GIT}"; then
-    push_with_retries "${PUSH_RETRY_COUNT}" "${GIT_BRANCH}"
-  else
-    echo "Not pushing changes to the server for branch '${GIT_BRANCH}' - PUSH_TO_SERVER set to false or DISABLE_GIT set to true"
-  fi
+#  if "${PUSH_TO_SERVER}" && ! "${DISABLE_GIT}"; then
+#    push_with_retries "${PUSH_RETRY_COUNT}" "${GIT_BRANCH}"
+#  else
+#    echo "Not pushing changes to the server for branch '${GIT_BRANCH}' - PUSH_TO_SERVER set to false or DISABLE_GIT set to true"
+#  fi
 
   if ! "${QUIET}"; then
     echo
