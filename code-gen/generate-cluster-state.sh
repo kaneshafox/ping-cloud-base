@@ -890,7 +890,7 @@ echo ---
 TEMPLATES_HOME="${SCRIPT_HOME}/templates"
 #BASE_TOOLS_REL_DIR="base/cluster-tools"
 #BASE_PING_CLOUD_REL_DIR="base/ping-cloud"
-REGION_DIR="${TEMPLATES_HOME}/region"
+#REGION_DIR="${TEMPLATES_HOME}/region"
 
 COMMON_TEMPLATES_DIR="${TEMPLATES_HOME}/common"
 CHUB_TEMPLATES_DIR="${TEMPLATES_HOME}/customer-hub"
@@ -905,8 +905,6 @@ BOOTSTRAP_SHORT_DIR='fluxcd'
 BOOTSTRAP_DIR="${TARGET_DIR}/${BOOTSTRAP_SHORT_DIR}"
 
 CLUSTER_STATE_REPO_DIR="${TARGET_DIR}/cluster-state"
-GIT_OPS_VALIDATION_FOLDER="${K8S_CONFIGS_DIR}/validation"
-
 PROFILE_REPO_DIR="${TARGET_DIR}/profile-repo"
 PROFILES_DIR="${PROFILE_REPO_DIR}/profiles"
 
@@ -916,19 +914,12 @@ PING_CENTRAL='pingcentral'
 mkdir -p "${BOOTSTRAP_DIR}"
 mkdir -p "${CLUSTER_STATE_REPO_DIR}"
 mkdir -p "${PROFILE_REPO_DIR}"
-mkdir -p "${GIT_OPS_VALIDATION_FOLDER}"
 
 cp ./update-cluster-state-wrapper.sh "${CLUSTER_STATE_REPO_DIR}"
 cp ./update-profile-wrapper.sh "${PROFILE_REPO_DIR}"
 
 cp ../.gitignore "${CLUSTER_STATE_REPO_DIR}"
 cp ../.gitignore "${PROFILE_REPO_DIR}"
-
-cp ../k8s-configs/cluster-tools/base/git-ops/git-ops-command.sh "${K8S_CONFIGS_DIR}"
-cp ../k8s-configs/cluster-tools/base/git-ops/validation/verify_descriptor_json.py "${GIT_OPS_VALIDATION_FOLDER}"
-cp ../k8s-configs/cluster-tools/base/git-ops/validation/json_util.py "${GIT_OPS_VALIDATION_FOLDER}"
-
-find "${TEMPLATES_HOME}" -type f -maxdepth 1 | xargs -I {} cp {} "${K8S_CONFIGS_DIR}"
 
 echo "${PING_CLOUD_BASE_COMMIT_SHA}" > "${TARGET_DIR}/pcb-commit-sha.txt"
 
@@ -1111,6 +1102,15 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   K8S_CONFIGS_DIR="${ENV_DIR}/k8s-configs"
   mkdir -p "${K8S_CONFIGS_DIR}"
 
+  GIT_OPS_VALIDATION_FOLDER="${K8S_CONFIGS_DIR}/validation"
+  mkdir -p "${GIT_OPS_VALIDATION_FOLDER}"
+
+  cp ../k8s-configs/cluster-tools/base/git-ops/git-ops-command.sh "${K8S_CONFIGS_DIR}"
+  cp ../k8s-configs/cluster-tools/base/git-ops/validation/verify_descriptor_json.py "${GIT_OPS_VALIDATION_FOLDER}"
+  cp ../k8s-configs/cluster-tools/base/git-ops/validation/json_util.py "${GIT_OPS_VALIDATION_FOLDER}"
+
+  find "${TEMPLATES_HOME}" -type f -maxdepth 1 | xargs -I {} cp {} "${K8S_CONFIGS_DIR}"
+
   # Copy the common templates first.
   cd "${COMMON_TEMPLATES_DIR}"
   rsync -rR * "${K8S_CONFIGS_DIR}"
@@ -1139,7 +1139,7 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   substitute_vars "${ENV_DIR}" "${REPO_VARS}" values.yaml
   substitute_vars "${ENV_DIR}" '${IS_BELUGA_ENV}' values.yaml
 
-  PRIMARY_PING_KUST_FILE="${ENV_DIR}/${REGION_NICK_NAME}/kustomization.yaml"
+  PRIMARY_PING_KUST_FILE="${K8S_CONFIGS_DIR}/${REGION_NICK_NAME}/kustomization.yaml"
   # Regional enablement - add admins, backups, etc. to primary.
   if test "${TENANT_DOMAIN}" = "${PRIMARY_TENANT_DOMAIN}"; then
     sed -i.bak 's/^\(.*remove-from-secondary-patch.yaml\)$/# \1/g' "${PRIMARY_PING_KUST_FILE}"
@@ -1147,7 +1147,7 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   fi
 
   if "${IS_BELUGA_ENV}"; then
-    BASE_ENV_VARS="${ENV_DIR}/base/env_vars"
+    BASE_ENV_VARS="${K8S_CONFIGS_DIR}/base/env_vars"
     echo >> "${BASE_ENV_VARS}"
     echo "IS_BELUGA_ENV=true" >> "${BASE_ENV_VARS}"
     # Update patches related to Beluga developer CDEs
