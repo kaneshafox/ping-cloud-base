@@ -180,6 +180,8 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   fi
 
   echo "Processing branch '${GIT_BRANCH}' for environment '${ENV}' and default branch '${DEFAULT_CDE_BRANCH}'"
+  # Get app paths
+  APP_PATHS=$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}" -type d -depth 1)
 
   if ! ${DISABLE_GIT}; then
     # Check if the branch exists locally. If so, switch to it.
@@ -247,22 +249,27 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
       cp "${src_dir}"/.gitignore ./
       cp "${src_dir}"/update-cluster-state-wrapper.sh ./
 
-      # Copy the k8s-configs.
-      mkdir -p "${K8S_CONFIGS_DIR}"
+      # Copy base files
+      for APP_PATH in ${APP_PATHS}; do
+        APP_NAME=$(basename "${APP_PATH}")
 
-      # Copy base files into the k8s-configs directory.
-      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}"
-      echo "Copying base files from ${src_dir} to ${K8S_CONFIGS_DIR}"
-      find "${src_dir}" -type f -maxdepth 1 -exec cp {} "${K8S_CONFIGS_DIR}" \;
+        # Make the dir
+        mkdir -p "${APP_NAME}"
 
-      # Copy the k8s-configs/base directory, which is common code for all regions.
-      src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}/${BASE_DIR}"
-      echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
-      cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
+        # Copy base files into the app directory.
+        src_dir="${APP_PATH}"
+        echo "Copying base files from ${src_dir} to ${APP_NAME}"
+        find "${src_dir}" -type f -maxdepth 1 -exec cp {} "${APP_NAME}" \;
+        #TODO: What about validation directory?
+        # Copy the base directory, which is common code for all regions.
+        src_dir="${APP_PATH}/${BASE_DIR}"
+        echo "Copying ${src_dir} to ${APP_NAME}"
+        cp -pr "${src_dir}" "${APP_NAME}/"
+      done
     fi
 
     # Last but not least, stick the version of Beluga into a version.txt file.
-    beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}" \
+    beluga_version="$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${K8S_CONFIGS_DIR}" \
       -name env_vars -exec grep '^K8S_GIT_BRANCH=' {} \; | cut -d= -f2)"
     echo "Beluga version is ${beluga_version} for environment ${ENV}"
     echo "${beluga_version}" > version.txt
@@ -271,12 +278,17 @@ for ENV_OR_BRANCH in ${ENVIRONMENTS}; do
   if "${IS_PROFILE_REPO}"; then
     commit_msg="Initial commit of profile code for environment '${ENV}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   else
-    # shellcheck disable=SC2010
-    region="$(ls "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}" | grep -v "${BASE_DIR}")"
-    src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${K8S_CONFIGS_DIR}/${ENV_OR_BRANCH}/${region}"
+    for APP_PATH in ${APP_PATHS}; do
+      APP_NAME=$(basename "${APP_PATH}")
 
-    echo "Copying ${src_dir} to ${K8S_CONFIGS_DIR}"
-    cp -pr "${src_dir}" "${K8S_CONFIGS_DIR}/"
+      # shellcheck disable=SC2010
+      region_path="$(find "${APP_PATH}" -type d -depth 1 ! -path '*/base' ! -path '*/validation')"
+      region=$(basename "${region_path}")
+      src_dir="${APP_PATH}/$region"
+
+      echo "Copying ${src_dir} to ${APP_NAME}"
+      cp -pr "${src_dir}" "${APP_NAME}/"
+    done
 
     commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi
