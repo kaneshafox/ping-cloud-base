@@ -9,7 +9,7 @@ spec:
         repoURL: ${CLUSTER_STATE_REPO_URL}
         revision: ${CLUSTER_STATE_REPO_BRANCH}
         directories:
-          - path: *
+          - path: '*'
           - path: k8s-configs
             exclude: true
   template:
