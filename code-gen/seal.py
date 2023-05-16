@@ -8,6 +8,7 @@ yaml.preserve_quotes = True
 
 # constants
 SECRETS_KEY = "secrets"
+SEALED_SECRETS_VAR = "sealedSecrets"
 
 
 class SealSecrets:
@@ -65,8 +66,8 @@ class SealSecrets:
         # Loop through the secrets
         # YAML format expected:
         #    secrets:
-        #      NAMESPACE:
-        #        SECRET_NAME:
+        #      NAMESPACE:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
+        #        SECRETNAME:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
         #          KEY: VALUE
         for k8s_namespace in self.values[SECRETS_KEY]:
             for k8s_secret in self.values[SECRETS_KEY][k8s_namespace]:
@@ -77,8 +78,9 @@ class SealSecrets:
 
                         # Run seal secret command to get the sealed value
                         p1 = subprocess.Popen(["echo", "-n", value], stdout=subprocess.PIPE)
-                        p2 = subprocess.Popen(["kubeseal", "--cert", self.cert, "--raw", "--namespace", k8s_namespace,
-                                               "--name", k8s_secret], stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        p2 = subprocess.Popen(["kubeseal", "--cert", self.cert, "--raw", "--namespace",
+                                               k8s_namespace.replace("_", "-"), "--name", k8s_secret.replace("_", "-")],
+                                              stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
                         # Check if sealing the secret failed
                         if p2.wait() != 0:
@@ -90,6 +92,9 @@ class SealSecrets:
 
                         # Update yaml with sealed value
                         self.values[SECRETS_KEY][k8s_namespace][k8s_secret][key] = sealed_value
+
+        # Update sealedSecrets variable to true
+        self.values[SEALED_SECRETS_VAR] = True
 
         # Write new values.yaml file
         self.write_new_values()
@@ -104,7 +109,7 @@ if __name__ == "__main__":
 
     answers = inquirer.prompt(questions)
 
-    if answers["Yes"]:
+    if answers["overwrite"] == "Yes":
         print("Continuing with  overwriting values.yaml")
         overwrite = True
     else:

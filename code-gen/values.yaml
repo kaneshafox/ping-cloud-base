@@ -6,18 +6,21 @@
 # Secrets
 ########################################################
 # Expected format for each secret:
-# secrets:
-#   NAMESPACE:
-#     SECRET_NAME:
-#       KEY1: VALUE1
-#       KEY2: VALUE2
+# NAMESPACE:
+#   SECRETNAME:
+#     KEY1: VALUE1
+#     KEY2: VALUE2
+# ***Note: Helm doesn't allow dashes, so use underscores
+#          in place of dashes.
+#          Ex: NAMESPACE=ping-cloud use ping_cloud here
 ########################################################
 
 sealedSecrets: false
 secrets:
-  ping-cloud:
-    test-secret:
-      test_value: VGhpcyBpcyBhIHRlc3Q=
+  pod_reaper:
+    test_secret:
+      testvalue: VGhpcyBpcyBhIHRlc3Q=
+      test: dGVzdDI=
 
 
 ########################################################
@@ -313,7 +316,8 @@ promSlackChannel: "${PROM_SLACK_CHANNEL}"
 
 # Variables used by argocd-image-updater to automatically update the container images managed by ArgoCD
 imageTagPrefix: "${IMAGE_TAG_PREFIX}"
-imageList: "apps: ${ECR_REGISTRY_NAME}/pingcloud-apps/pingfederate,apps: ${ECR_REGISTRY_NAME}/pingcloud-apps/pingaccess,apps: ${ECR_REGISTRY_NAME}/pingcloud-apps/pingaccess-was"
+imageList: "apps: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingfederate,apps: public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess,apps:
+  public.ecr.aws/r2h3l6e4/pingcloud-apps/pingaccess-was"
 
 # Dashboards repo variables
 dashRepoUrl: "https://github.com/pingidentity/ping-cloud-dashboards"
