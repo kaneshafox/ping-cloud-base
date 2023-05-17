@@ -2,25 +2,24 @@
 # Customer parameters that are shared by multiple apps
 ########################################################################################################################
 
-########################################################
-# Secrets
-########################################################
-# Expected format for each secret:
-# NAMESPACE:
-#   SECRETNAME:
-#     KEY1: VALUE1
-#     KEY2: VALUE2
-# ***Note: Helm doesn't allow dashes, so use underscores
-#          in place of dashes.
-#          Ex: NAMESPACE=ping-cloud use ping_cloud here
-########################################################
+global:
 
-sealedSecrets: false
-secrets:
-  pod_reaper:
-    test_secret:
-      testvalue: VGhpcyBpcyBhIHRlc3Q=
-      test: dGVzdDI=
+  ########################################################
+  # Secrets
+  ########################################################
+  # Expected format for each secret:
+  # NAMESPACE:
+  #   SECRETNAME:
+  #     KEY1: VALUE1
+  #     KEY2: VALUE2
+  ########################################################
+
+  sealedSecrets: false
+  secrets:
+    pod-reaper:
+      test-secret:
+        testvalue: VGhpcyBpcyBhIHRlc3Q=
+        test: dGVzdDI=
 
 
 ########################################################
@@ -251,7 +250,7 @@ clusterStateRepoBranch: "${CLUSTER_STATE_REPO_BRANCH}"
 appResyncSeconds: 60
 
 # Current app logs destination (True :  CW, False :  ELK)
-legacyLogging: False
+legacyLogging: "False"
 
 ############################################################
 # Lets Encrypt server

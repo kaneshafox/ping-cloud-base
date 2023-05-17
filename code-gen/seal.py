@@ -1,21 +1,21 @@
 import ruamel.yaml
 import sys
 import subprocess
-import inquirer
+import base64 as b64
 
 yaml = ruamel.yaml.YAML()
 yaml.preserve_quotes = True
 
 # constants
+GLOBAL_KEY = "global"
 SECRETS_KEY = "secrets"
 SEALED_SECRETS_VAR = "sealedSecrets"
 
 
 class SealSecrets:
 
-    def __init__(self, cert: str, overwrite_values: bool, values_file: str = "values.yaml"):
+    def __init__(self, cert: str, values_file: str = "values.yaml"):
         self.cert = cert
-        self.overwrite_values = overwrite_values
         self.values_file = values_file
         self.values = self.load_values()
 
@@ -37,16 +37,11 @@ class SealSecrets:
         """
         :raise: Exception if cannot write to file_path.
         """
-        if self.overwrite_values:
-            file_path = self.values_file
-        else:
-            file_path = "new_values.yaml"
-
-        with open(file_path, "w") as values_file:
+        with open(self.values_file, "w") as values_file:
             try:
                 yaml.dump(self.values, values_file)
             except Exception as e:
-                print("Unable to write new values file '%s'" % file_path)
+                print("Unable to write new values file '%s'" % self.values_file)
                 print(e)
 
     def seal_secrets(self):
@@ -56,7 +51,7 @@ class SealSecrets:
         """
 
         # Check that secrets exist
-        if not self.values[SECRETS_KEY]:
+        if not self.values[GLOBAL_KEY][SECRETS_KEY]:
             print("No secrets found to seal")
             exit(0)
 
@@ -69,18 +64,19 @@ class SealSecrets:
         #      NAMESPACE:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
         #        SECRETNAME:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
         #          KEY: VALUE
-        for k8s_namespace in self.values[SECRETS_KEY]:
-            for k8s_secret in self.values[SECRETS_KEY][k8s_namespace]:
-                for key in self.values[SECRETS_KEY][k8s_namespace][k8s_secret]:
-                    value = self.values[SECRETS_KEY][k8s_namespace][k8s_secret][key]
+        for k8s_namespace in self.values[GLOBAL_KEY][SECRETS_KEY]:
+            for k8s_secret in self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace]:
+                for key in self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret]:
+                    value = b64.b64decode(self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret][key]
+                                          .encode("ascii")).decode("ascii")
                     if value is not None:
                         print("Sealing secret '%s, %s, %s'" % (k8s_namespace, k8s_secret, key))
 
                         # Run seal secret command to get the sealed value
                         p1 = subprocess.Popen(["echo", "-n", value], stdout=subprocess.PIPE)
-                        p2 = subprocess.Popen(["kubeseal", "--cert", self.cert, "--raw", "--namespace",
-                                               k8s_namespace.replace("_", "-"), "--name", k8s_secret.replace("_", "-")],
-                                              stdin=p1.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                        p2 = subprocess.Popen(["kubeseal", "--cert", self.cert, "--raw", "--namespace", k8s_namespace,
+                                               "--name", k8s_secret], stdin=p1.stdout, stdout=subprocess.PIPE,
+                                              stderr=subprocess.PIPE)
 
                         # Check if sealing the secret failed
                         if p2.wait() != 0:
@@ -91,7 +87,7 @@ class SealSecrets:
                         sealed_value = str(p2.stdout.readline(), 'utf-8')
 
                         # Update yaml with sealed value
-                        self.values[SECRETS_KEY][k8s_namespace][k8s_secret][key] = sealed_value
+                        self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret][key] = sealed_value
 
         # Update sealedSecrets variable to true
         self.values[SEALED_SECRETS_VAR] = True
@@ -103,17 +99,5 @@ class SealSecrets:
 if __name__ == "__main__":
     cert_file = sys.argv[1]
 
-    questions = [
-        inquirer.List("overwrite", message="Do you want to overwrite the current values.yaml?", choices=["Yes", "No"]),
-    ]
-
-    answers = inquirer.prompt(questions)
-
-    if answers["overwrite"] == "Yes":
-        print("Continuing with  overwriting values.yaml")
-        overwrite = True
-    else:
-        overwrite = False
-
-    seal = SealSecrets(cert_file, overwrite)
+    seal = SealSecrets(cert_file)
     seal.seal_secrets()
