@@ -1288,8 +1288,10 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
 
   echo "Substituting env vars, this may take some time..."
   substitute_vars "${ENV_DIR}" "${REPO_VARS}" secrets.yaml env_vars
+
+  echo "Substituting values.yaml"
   substitute_vars "${CLUSTER_STATE_REPO_DIR}" "${REPO_VARS}" values.yaml values_region.yaml
-  # TODO: These duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV in values files only
+  # TODO: These duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV in values files
   #  clean this up with PDO-4842 when all apps are migrated to values files by adding IS_BELUGA_ENV to DEFAULT_VARS
   #  and redoing how derived variables are set
   substitute_vars "${CLUSTER_STATE_REPO_DIR}" "${REPO_VARS}" values.yaml values_region.yaml

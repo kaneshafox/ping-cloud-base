@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+
+# **********************************************************************************************************************
+# This script is for sealing secrets in the new microservice Helm apps format in the Cluster-State-Repo
+#   Note: This script does not work on the 'k8s-configs' directory, it is intended for the new microservice apps
+#         that will be using Helm.
+#
+# Usage: python3 seal.py <CERT_FILE>
+# **********************************************************************************************************************
+
 import ruamel.yaml
 import sys
 import subprocess
