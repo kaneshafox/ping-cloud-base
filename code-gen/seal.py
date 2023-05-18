@@ -106,6 +106,11 @@ class SealSecrets:
 
 
 if __name__ == "__main__":
-    cert_file = sys.argv[1]
-    seal = SealSecrets(cert_file)
-    seal.seal_secrets()
+    if len(sys.argv) == 2:
+        cert_file = sys.argv[1]
+        seal = SealSecrets(cert_file)
+        seal.seal_secrets()
+    else:
+        print("Error in usage. No cert file passed in.")
+        print("Usage: python3 seal.py [CERT_FILE]")
+        raise Exception()
