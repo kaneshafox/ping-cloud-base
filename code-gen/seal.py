@@ -90,7 +90,7 @@ class SealSecrets:
                         self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret][key] = sealed_value
 
         # Update sealedSecrets variable to true
-        self.values[SEALED_SECRETS_VAR] = True
+        self.values[GLOBAL_KEY][SEALED_SECRETS_VAR] = True
 
         # Write new values.yaml file
         self.write_new_values()
