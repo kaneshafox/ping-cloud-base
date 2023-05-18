@@ -16,10 +16,6 @@ global:
 
   sealedSecrets: false
   secrets:
-    pod-reaper:
-      test-secret:
-        valueone: VGhpcyBpcyBhIHRlc3Q=
-        valuetwo: dGVzdDI=
 
 
 ########################################################

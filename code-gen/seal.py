@@ -21,8 +21,9 @@ class SealSecrets:
 
     def load_values(self) -> dict:
         """
-        :return: dict of values.yaml.
-        :raise: Exception if values.yaml file is not found.
+        Loads values.yaml file into dictionary object
+
+        :return: The values as a dictionary
         """
         try:
             with open(self.values_file, "r") as values_file:
@@ -35,7 +36,7 @@ class SealSecrets:
 
     def write_new_values(self):
         """
-        :raise: Exception if cannot write to file_path.
+        Overwrites values.yaml file with yaml object with updated secret values
         """
         with open(self.values_file, "w") as values_file:
             try:
@@ -46,8 +47,12 @@ class SealSecrets:
 
     def seal_secrets(self):
         """
-        :return: dict of values.yaml.
-        :raise: Exception if cannot write to file_path.
+        Seals all secrets in the values.yaml file's .Values.global.secrets object
+        values.yaml format expected:
+        secrets:
+          NAMESPACE:
+            SECRETNAME:
+              KEY: VALUE
         """
 
         # Check that secrets exist
@@ -55,34 +60,28 @@ class SealSecrets:
             print("No secrets found to seal")
             exit(0)
 
-        # Seal the secret values
         print("Using certificate file '%s' for encrypting secrets" % self.cert)
 
         # Loop through the secrets
-        # YAML format expected:
-        #    secrets:
-        #      NAMESPACE:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
-        #        SECRETNAME:   *Note: helm doesn't allow dashes, so it will use underscores & replace with dashes here
-        #          KEY: VALUE
         for k8s_namespace in self.values[GLOBAL_KEY][SECRETS_KEY]:
             for k8s_secret in self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace]:
                 for key in self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret]:
-                    value = b64.b64decode(self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret][key]
-                                          .encode("ascii")).decode("ascii")
+                    # Get the value
+                    value = self.values[GLOBAL_KEY][SECRETS_KEY][k8s_namespace][k8s_secret][key]
                     if value is not None:
                         print("Sealing secret '%s, %s, %s'" % (k8s_namespace, k8s_secret, key))
 
                         # Run seal secret command to get the sealed value
-                        p1 = subprocess.Popen(["echo", "-n", value], stdout=subprocess.PIPE)
+                        p1 = subprocess.Popen(["echo", "-n", b64.b64decode(value.encode("ascii")).decode("ascii")],
+                                              stdout=subprocess.PIPE)
                         p2 = subprocess.Popen(["kubeseal", "--cert", self.cert, "--raw", "--namespace", k8s_namespace,
                                                "--name", k8s_secret], stdin=p1.stdout, stdout=subprocess.PIPE,
                                               stderr=subprocess.PIPE)
 
                         # Check if sealing the secret failed
                         if p2.wait() != 0:
-                            print("Error sealing secret. See output below.")
                             print(str(p2.stderr.readline(), 'utf-8'))
-                            break
+                            raise Exception("Error sealing secret. See output above.")
 
                         sealed_value = str(p2.stdout.readline(), 'utf-8')
 
@@ -98,6 +97,5 @@ class SealSecrets:
 
 if __name__ == "__main__":
     cert_file = sys.argv[1]
-
     seal = SealSecrets(cert_file)
     seal.seal_secrets()
