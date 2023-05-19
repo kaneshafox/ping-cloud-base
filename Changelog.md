@@ -4,6 +4,7 @@
 
 - Update bootstrap to create davinci-configuration secret
 - Add new seal secrets script for MonoRepo breakup
+- Fix: kubernetes-dashboards configmap "Too long" error
 
 _Changes:_
 
