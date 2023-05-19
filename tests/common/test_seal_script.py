@@ -96,3 +96,5 @@ class TestSealScript(unittest.TestCase):
         results = run_seal_script(self.cert_file)
         error_code = results.wait()
         self.assertEqual(error_code, 0, "seal script failed when it should have succeeded")
+        msg = str(results.communicate()[0], 'utf-8')
+        self.assertIn("Secrets successfully sealed!", msg, "seal script returned incorrect response")

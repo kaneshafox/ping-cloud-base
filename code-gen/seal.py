@@ -104,6 +104,8 @@ class SealSecrets:
         # Write new values.yaml file
         self.write_new_values()
 
+        print("Secrets successfully sealed!")
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
