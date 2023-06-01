@@ -246,9 +246,23 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       cp "${src_dir}"/.gitignore ./
       cp "${src_dir}"/update-cluster-state-wrapper.sh ./
       cp "${src_dir}"/csr-validation.sh ./
-      cp "${src_dir}"/values.yaml ./
-      cp "${src_dir}"/values_region.yaml ./
       cp "${src_dir}"/seal-secret-values.py ./
+
+      # Handle values files
+      if "${IS_PRIMARY}"; then
+        # If primary region merge values.yaml & values_region.yaml & copy over
+        yq ea '. as $item ireduce ({}; . * $item )' "${src_dir}"/values.yaml "${src_dir}"/values_regions.yaml > ./values.yaml
+      else
+        if test -f "./values.yaml"; then
+          # If values.yaml file already exists in repo, merge values_region.yaml into it
+          cp ./values.yaml ./values.yaml.bak
+          yq ea '. as $item ireduce ({}; . * $item )' ./values.yaml "${src_dir}"/values_regions.yaml > ./values.yaml
+          rm -rf ./values.yaml.bak
+        else
+          # Else just copy the values_region.yaml over so it can be merged later
+          cp "${src_dir}"/values_region.yaml ./
+        fi
+      fi
 
       # Copy each app's base files into the repo
       for app_path in ${APP_PATHS}; do
