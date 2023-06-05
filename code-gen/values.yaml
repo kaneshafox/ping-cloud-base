@@ -56,11 +56,6 @@ global:
   # globalTenantDomain is the region-independent URL used for DNS failover/routing
   globalTenantDomain: "${GLOBAL_TENANT_DOMAIN}"
 
-  # regions is a map of all regions along with its region specific values
-  # this section is built during generate-cluster-state script and
-  # appended here via push-cluster-state script
-  regions:
-
   ########################################################
   # Environment-specific variables
   ########################################################
@@ -102,72 +97,61 @@ global:
   # serverProfileBranch is the git branch for the profile repo
   serverProfileBranch: "${SERVER_PROFILE_BRANCH_DERIVED}"
 
+  # k8sGitBranch is the ping-cloud-base git branch for base Kubernetes manifests
+  # TODO: maybe rename this to belugaVersion?
+  k8sGitBranch: "${K8S_GIT_BRANCH}"
+
   ########################################################
   # DevOps License environment variables
   ########################################################
   pingIdentityDevopsUser: "${PING_IDENTITY_DEVOPS_USER}"
   pingIdentityDevopsKey: "${PING_IDENTITY_DEVOPS_KEY}"
 
+  #### FEATURE FLAGS #####################################################################################################
+  # Most are disabled by default
+  # Please follow runbook instructions for the given feature flag to enable/disable
 
+  # !!! Provisioning for PingFederate is not yet available for multi-region customers !!!
+  # Runbook: https://confluence.pingidentity.com/display/PingCloud/How+to+Enable+and+Configure+PingFederate+Provisioning
+  pfProvisioningEnabled: ${PF_PROVISIONING_ENABLED}
 
+  radiusProxyEnabled: ${RADIUS_PROXY_ENABLED}
 
+  external_ingress_enabled: ${EXTERNAL_INGRESS_ENABLED}
+  ########################################################################################################################
 
+  ########################################################
+  # Public hostnames
+  ########################################################
+  pdPrimaryPublicHostname: "pingdirectory-admin.${PRIMARY_DNS_ZONE_DERIVED}"
+  pfAdminPublicHostname: "pingfederate-admin.${PRIMARY_DNS_ZONE_DERIVED}"
+  pfAdminApiPublicHostname: "pingfederate-admin-api.${PRIMARY_DNS_ZONE_DERIVED}"
+  paAdminPublicHostname: "pingaccess-admin.${PRIMARY_DNS_ZONE_DERIVED}"
+  paAdminApiPublicHostname: "pingaccess-admin-api.${PRIMARY_DNS_ZONE_DERIVED}"
+  pawasAdminPublicHostname: "pingaccess-was-admin.${PRIMARY_DNS_ZONE_DERIVED}"
+  pcAdminPublicHostname: "pingcentral-admin.${PRIMARY_DNS_ZONE_DERIVED}"
+  pcAdminPrivateSiteHostname: "pingcentral.${PRIMARY_TENANT_DOMAIN}"
+  pdClusterPublicHostname: "pingdirectory-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
+  pfClusterPublicHostname: "pingfederate-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
+  paClusterPublicHostname: "pingaccess-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
+  pawasClusterPublicHostname: "pingaccess-was-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
 
+  # Ping engine hostname variables
+  pdPublicHostname: "pingdirectory-admin.${DNS_ZONE_DERIVED}"
+  pdHttpPublicHostname: "pingdirectory.${DNS_ZONE_DERIVED}"
+  pdDelegatorPublicHostname: "pingdelegator.${DNS_ZONE_DERIVED}"
+  pdDelegatorPublicPort: 443
+  pfEnginePublicHostname: "pingfederate.${DNS_ZONE_DERIVED}"
+  paEnginePublicHostname: "pingaccess.${DNS_ZONE_DERIVED}"
+  pawasEnginePublicHostname: "pingaccess-was.${DNS_ZONE_DERIVED}"
 
-#TODO: see if we can get rid of this. It's currently used by metadata service
-# k8sGitBranch is the ping-cloud-base git branch for base Kubernetes manifests
-k8sGitBranch: "${K8S_GIT_BRANCH}"
+  prometheusPublicHostname: "prometheus.${DNS_ZONE_DERIVED}"
+  grafanaPublicHostname: "monitoring.${DNS_ZONE_DERIVED}"
+  kibanaPublicHostname: "logs.${DNS_ZONE_DERIVED}"
+  argocdPublicHostname: "argocd.${DNS_ZONE_DERIVED}"
 
-
-########################################################
-# Public hostnames
-########################################################
-pdPrimaryPublicHostname: "pingdirectory-admin.${PRIMARY_DNS_ZONE_DERIVED}"
-pfAdminPublicHostname: "pingfederate-admin.${PRIMARY_DNS_ZONE_DERIVED}"
-pfAdminApiPublicHostname: "pingfederate-admin-api.${PRIMARY_DNS_ZONE_DERIVED}"
-paAdminPublicHostname: "pingaccess-admin.${PRIMARY_DNS_ZONE_DERIVED}"
-paAdminApiPublicHostname: "pingaccess-admin-api.${PRIMARY_DNS_ZONE_DERIVED}"
-pawasAdminPublicHostname: "pingaccess-was-admin.${PRIMARY_DNS_ZONE_DERIVED}"
-pcAdminPublicHostname: "pingcentral-admin.${PRIMARY_DNS_ZONE_DERIVED}"
-pcAdminPrivateSiteHostname: "pingcentral.${PRIMARY_TENANT_DOMAIN}"
-pdClusterPublicHostname: "pingdirectory-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
-pfClusterPublicHostname: "pingfederate-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
-paClusterPublicHostname: "pingaccess-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
-pawasClusterPublicHostname: "pingaccess-was-cluster.${PRIMARY_DNS_ZONE_DERIVED}"
-
-# Ping engine hostname variables
-pdPublicHostname: "pingdirectory-admin.${DNS_ZONE_DERIVED}"
-pdHttpPublicHostname: "pingdirectory.${DNS_ZONE_DERIVED}"
-pdDelegatorPublicHostname: "pingdelegator.${DNS_ZONE_DERIVED}"
-pdDelegatorPublicPort: 443
-pfEnginePublicHostname: "pingfederate.${DNS_ZONE_DERIVED}"
-paEnginePublicHostname: "pingaccess.${DNS_ZONE_DERIVED}"
-pawasEnginePublicHostname: "pingaccess-was.${DNS_ZONE_DERIVED}"
-
-prometheusPublicHostname: "prometheus.${DNS_ZONE_DERIVED}"
-grafanaPublicHostname: "monitoring.${DNS_ZONE_DERIVED}"
-kibanaPublicHostname: "logs.${DNS_ZONE_DERIVED}"
-argocdPublicHostname: "argocd.${DNS_ZONE_DERIVED}"
-
-healthcheckHttpbinPawasPublicHostname: "healthcheck-httpbin-pa-was.${DNS_ZONE_DERIVED}"
-healthcheckHttpbinPaPublicHostname: "healthcheck-httpbin-pa.${DNS_ZONE_DERIVED}"
-
-
-#### FEATURE FLAGS #####################################################################################################
-# Set to true to enable, most are disabled by default
-# Please follow runbook instructions for the given feature flag to enable/disable
-
-# !!! Provisioning for PingFederate is not yet available for multi-region customers !!!
-# Runbook: https://confluence.pingidentity.com/display/PingCloud/How+to+Enable+and+Configure+PingFederate+Provisioning
-pfProvisioningEnabled: ${PF_PROVISIONING_ENABLED}
-
-radiusProxyEnabled: ${RADIUS_PROXY_ENABLED}
-
-external_ingress_enabled: ${EXTERNAL_INGRESS_ENABLED}
-########################################################################################################################
-
-
-
+  healthcheckHttpbinPawasPublicHostname: "healthcheck-httpbin-pa-was.${DNS_ZONE_DERIVED}"
+  healthcheckHttpbinPaPublicHostname: "healthcheck-httpbin-pa.${DNS_ZONE_DERIVED}"
 
 ########################################################################################################################
 #TODO: Are these needed anymore now that we're using values files?
