@@ -90,6 +90,9 @@ global:
   # serverProfileBranch is the git branch for the profile repo
   serverProfileBranch: "${SERVER_PROFILE_BRANCH_DERIVED}"
 
+  # The image pull policy for all images
+  imagePullPolicy: "Always"
+
   ########################################################
   # Environment-specific variables
   ########################################################

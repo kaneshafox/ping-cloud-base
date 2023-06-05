@@ -13,6 +13,7 @@ _Changes:_
 - [X] PDO-5158 Configure PA WAS from Shared P1 Tenant
 - [X] PDO-5314 Update bootstrap to create davinci-configuration secret
 - [X] PDO-5333 ArgoCD authentication to private ECR for Helm
+- [X] PDO-5435 Update values.yaml files structure
 
 ### 1.18.0.0
 
