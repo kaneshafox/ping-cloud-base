@@ -1,0 +1,31 @@
+kind: Kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+
+#TODO: Is this needed?
+namespace: ping-cloud
+
+resources:
+  - ../base
+  - custom-resources
+
+helmCharts:
+  - name: p1as-beluga-tools
+    additionalValuesFile:
+      - ../../values.yaml   # base values.yaml
+      - ../../values-${REGION_NICK_NAME}.yaml   # regional values.yaml
+      - values.yaml   # app specific values.yaml
+    releaseName: p1as-beluga-tools
+    includeCRDs: true
+    # TODO: figure out how this is being set
+    version: ${K8S_GIT_BRANCH}-latest
+    repo: oci://${ECR_REGISTRY_NAME}/p1as-beluga-tools
+
+
+patchesStrategicMerge:
+  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
+  - custom-patches.yaml
+
+#configMapGenerator:
+#  - name: last-update-reason
+#    literals:
+#      - UPDATE_REASON="seal non-base64 secrets"
