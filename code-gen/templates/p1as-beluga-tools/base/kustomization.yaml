@@ -7,6 +7,6 @@ namespace: ping-cloud
 resources:
   - custom-resources
 
-patchesStrategicMerge:
-  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
-  - custom-patches.yaml
+#patchesStrategicMerge:
+#  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
+#  - custom-patches.yaml

@@ -21,9 +21,9 @@ helmCharts:
     repo: oci://${ECR_REGISTRY_NAME}/p1as-beluga-tools
 
 
-patchesStrategicMerge:
-  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
-  - custom-patches.yaml
+#patchesStrategicMerge:
+#  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
+#  - custom-patches.yaml
 
 #configMapGenerator:
 #  - name: last-update-reason
