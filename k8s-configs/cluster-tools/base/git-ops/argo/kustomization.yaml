@@ -228,7 +228,7 @@ patchesStrategicMerge:
     apiVersion: apps/v1
     kind: Deployment
     metadata:
-      name: argocd-repo-server
+      name: argocd-server
     spec:
       template:
         spec:
