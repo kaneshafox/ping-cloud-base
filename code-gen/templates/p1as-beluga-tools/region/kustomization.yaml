@@ -10,7 +10,7 @@ resources:
 
 helmCharts:
   - name: p1as-beluga-tools
-    additionalValuesFile:
+    additionalValuesFiles:
       - ../../values.yaml   # base values.yaml
       - ../../values-${REGION_NICK_NAME}.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
