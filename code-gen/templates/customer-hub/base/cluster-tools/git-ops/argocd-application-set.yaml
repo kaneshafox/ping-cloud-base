@@ -97,10 +97,10 @@ spec:
         repoURL: ${CLUSTER_STATE_REPO_URL}
         targetRevision: "{{metadata.annotations.argocd-branch}}"
         path: "{{path}}/${REGION_NICK_NAME}"
-      #          helm:
-#            valueFiles:
-#              - values.yaml
-#              - values-${REGION_NICK_NAME}.yaml
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-${REGION_NICK_NAME}.yaml
       destination:
         server: "{{server}}"
       ignoreDifferences:
