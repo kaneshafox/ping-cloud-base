@@ -17,7 +17,7 @@ helmCharts:
     releaseName: p1as-beluga-tools
     includeCRDs: true
     # TODO: figure out how this is being set
-    version: ${K8S_GIT_BRANCH}-latest
+    version: 19.0.0-PDO-5435-region-values-yaml
     repo: oci://${ECR_REGISTRY_NAME}/p1as-beluga-tools
 
 
