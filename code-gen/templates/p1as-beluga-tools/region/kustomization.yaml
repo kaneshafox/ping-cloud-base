@@ -5,7 +5,7 @@ namespace: ${PING_CLOUD_NAMESPACE}
 
 resources:
   - ../base
-  - custom-resources
+  - custom-resources  #TODO: test this
 
 helmCharts:
   - name: p1as-beluga-tools
@@ -18,11 +18,12 @@ helmCharts:
     version: 19.0.0-PDO-5435-region-values-yaml
     repo: oci://${ECR_REGISTRY_NAME}/p1as-beluga-tools
 
-
+# TODO: figure this out
 #patchesStrategicMerge:
 #  ### PS/GSO customizations to OOTB resources should only go into this file. Otherwise, CSR auto-updates will break. ###
 #  - custom-patches.yaml
 
+# TODO: figure this out
 #configMapGenerator:
 #  - name: last-update-reason
 #    literals:

@@ -628,7 +628,7 @@ organize_code_for_csr() {
       mv "${app_target_dir}/region" "${app_target_dir}/${REGION_NICK_NAME}"
 
       # Substitute the env vars in the kustomization.yaml
-      substitute_vars "${app_target_dir}/${REGION_NICK_NAME}" "${REPO_VARS}" kustomization.yaml
+      substitute_vars "${app_target_dir}" "${REPO_VARS}"
     fi
   done
 }
