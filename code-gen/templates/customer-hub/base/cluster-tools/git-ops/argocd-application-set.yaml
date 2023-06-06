@@ -94,9 +94,15 @@ spec:
     spec:
       project: default
       source:
-        repoURL: ${CLUSTER_STATE_REPO_URL}
-        targetRevision: "{{metadata.annotations.argocd-branch}}"
-        path: "{{path}}/${REGION_NICK_NAME}"
+        - repoURL: ${CLUSTER_STATE_REPO_URL}
+          targetRevision: "{{metadata.annotations.argocd-branch}}"
+          path: "{{path}}/${REGION_NICK_NAME}"
+        - repoURL: ${CLUSTER_STATE_REPO_URL}
+          targetRevision: "{{metadata.annotations.argocd-branch}}"
+          path: "values.yaml"
+        - repoURL: ${CLUSTER_STATE_REPO_URL}
+          targetRevision: "{{metadata.annotations.argocd-branch}}"
+          path: "values-${REGION_NICK_NAME}.yaml"
       destination:
         server: "{{server}}"
       ignoreDifferences:
