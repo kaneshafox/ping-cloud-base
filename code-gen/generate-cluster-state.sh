@@ -629,6 +629,11 @@ organize_code_for_csr() {
 
       # Substitute the env vars in the kustomization.yaml
       substitute_vars "${app_target_dir}" "${REPO_VARS}"
+      # TODO: These duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV
+      #  clean this up with PDO-4842 when all apps are migrated to values files by adding IS_BELUGA_ENV to DEFAULT_VARS
+      #  and redoing how derived variables are set
+      substitute_vars "${app_target_dir}" "${REPO_VARS}"
+      substitute_vars "${app_target_dir}" '${IS_BELUGA_ENV}'
     fi
   done
 }
@@ -1028,6 +1033,7 @@ BOOTSTRAP_DIR="${TARGET_DIR}/${BOOTSTRAP_SHORT_DIR}"
 CLUSTER_STATE_REPO_DIR="${TARGET_DIR}/cluster-state"
 PROFILE_REPO_DIR="${TARGET_DIR}/profile-repo"
 PROFILES_DIR="${PROFILE_REPO_DIR}/profiles"
+#VALUES_FILES_DIR="${CLUSTER_STATE_REPO_DIR}/values-files"
 
 CUSTOMER_HUB='customer-hub'
 PING_CENTRAL='pingcentral'
@@ -1039,8 +1045,6 @@ mkdir -p "${PROFILE_REPO_DIR}"
 
 cp ./update-cluster-state-wrapper.sh "${CLUSTER_STATE_REPO_DIR}"
 cp ./csr-validation.sh "${CLUSTER_STATE_REPO_DIR}"
-cp ./values.yaml "${CLUSTER_STATE_REPO_DIR}"
-cp ./values-region.yaml "${CLUSTER_STATE_REPO_DIR}/values-${REGION_NICK_NAME}.yaml"
 cp ./seal-secret-values.py "${CLUSTER_STATE_REPO_DIR}"
 cp ./update-profile-wrapper.sh "${PROFILE_REPO_DIR}"
 
@@ -1277,6 +1281,9 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     echo >> "${BASE_ENV_VARS}"
     echo "IS_BELUGA_ENV=true" >> "${BASE_ENV_VARS}"
 
+    # Add IS_BELUGA_ENV to the base values.yaml
+    substitute_vars "${ENV_DIR}/values-files" '${IS_BELUGA_ENV}'
+
     # Update patches related to Beluga developer CDEs
     sed -i.bak 's/^# \(.*remove-from-developer-cde-patch.yaml\)$/\1/g' "${PRIMARY_PING_KUST_FILE}"
     rm -f "${PRIMARY_PING_KUST_FILE}.bak"
@@ -1293,14 +1300,6 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
 
   echo "Substituting env vars, this may take some time..."
   substitute_vars "${ENV_DIR}" "${REPO_VARS}" secrets.yaml env_vars
-
-  echo "Substituting values.yaml"
-  substitute_vars "${CLUSTER_STATE_REPO_DIR}" "${REPO_VARS}" values.yaml "values-${REGION_NICK_NAME}.yaml"
-  # TODO: These duplicate calls are needed to substitute the derived variables & the IS_BELUGA_ENV in values files
-  #  clean this up with PDO-4842 when all apps are migrated to values files by adding IS_BELUGA_ENV to DEFAULT_VARS
-  #  and redoing how derived variables are set
-  substitute_vars "${CLUSTER_STATE_REPO_DIR}" "${REPO_VARS}" values.yaml "values-${REGION_NICK_NAME}.yaml"
-  substitute_vars "${CLUSTER_STATE_REPO_DIR}" '${IS_BELUGA_ENV}' values.yaml
 
   # Regional enablement - add admins, backups, etc. to primary and adding pingaccess-was and pingcentral to primary.
   if test "${TENANT_DOMAIN}" = "${PRIMARY_TENANT_DOMAIN}"; then

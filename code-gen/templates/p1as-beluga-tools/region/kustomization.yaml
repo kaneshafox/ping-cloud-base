@@ -10,8 +10,8 @@ resources:
 helmCharts:
   - name: p1as-beluga-tools
     additionalValuesFiles:
-      - ../../values.yaml   # base values.yaml
-      - ../../values-${REGION_NICK_NAME}.yaml   # regional values.yaml
+      - ../../values-files/base/values.yaml   # base values.yaml
+      - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
     includeCRDs: true
     # TODO: figure out how this is being set

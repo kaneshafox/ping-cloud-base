@@ -246,7 +246,6 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       cp "${src_dir}"/.gitignore ./
       cp "${src_dir}"/update-cluster-state-wrapper.sh ./
       cp "${src_dir}"/csr-validation.sh ./
-      cp "${src_dir}"/values.yaml ./
       cp "${src_dir}"/seal-secret-values.py ./
 
       # Copy each app's base files into the repo
@@ -294,11 +293,6 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       echo "Copying ${src_dir} to ${app_name}"
       cp -pr "${src_dir}" "${app_name}/"
     done
-
-    # Handle values-region.yaml
-    src_dir="${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}"
-    echo "Copying ${src_dir}/values-${region}.yaml"
-    cp "${src_dir}/values-${region}.yaml" ./
 
     commit_msg="Initial commit of k8s code for environment '${ENV}' in region '${region}' - ping-cloud-base@${PCB_COMMIT_SHA}"
   fi

@@ -78,6 +78,8 @@ spec:
                 - path: "*"
                 - path: k8s-configs
                   exclude: true
+                - path: values-files
+                  exclude: true
   template:
     metadata:
       # metadata comes from argocd-bootstrap, path.basename from the git generator
@@ -97,9 +99,6 @@ spec:
         repoURL: ${CLUSTER_STATE_REPO_URL}
         targetRevision: "{{metadata.annotations.argocd-branch}}"
         path: "{{path}}/${REGION_NICK_NAME}"
-#        - repoURL: ${CLUSTER_STATE_REPO_URL}
-#          targetRevision: "{{metadata.annotations.argocd-branch}}"
-#          path: "values.yaml"
       destination:
         server: "{{server}}"
       ignoreDifferences:
