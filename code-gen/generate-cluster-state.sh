@@ -633,7 +633,6 @@ organize_code_for_csr() {
       #  clean this up with PDO-4842 when all apps are migrated to values files by adding IS_BELUGA_ENV to DEFAULT_VARS
       #  and redoing how derived variables are set
       substitute_vars "${app_target_dir}" "${REPO_VARS}"
-      substitute_vars "${app_target_dir}" '${IS_BELUGA_ENV}'
     fi
   done
 }
@@ -1033,7 +1032,6 @@ BOOTSTRAP_DIR="${TARGET_DIR}/${BOOTSTRAP_SHORT_DIR}"
 CLUSTER_STATE_REPO_DIR="${TARGET_DIR}/cluster-state"
 PROFILE_REPO_DIR="${TARGET_DIR}/profile-repo"
 PROFILES_DIR="${PROFILE_REPO_DIR}/profiles"
-#VALUES_FILES_DIR="${CLUSTER_STATE_REPO_DIR}/values-files"
 
 CUSTOMER_HUB='customer-hub'
 PING_CENTRAL='pingcentral'
