@@ -79,7 +79,7 @@ global:
   k8sGitBranch: "${K8S_GIT_BRANCH}"
 
   # ecrRegistryName is the name of the Docker image registry
-  ecrRegistryName: "${ECR_REGISTRY_NAME}"
+  ecrRegistryName: "${ECR_REGISTRY_NAME}/dev"
 
   # clusterName is the eks cluster name
   clusterName: "${CLUSTER_NAME}"

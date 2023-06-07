@@ -4,4 +4,4 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: custom-patches-variables
+  name: beluga-tools-custom-environment-variables
