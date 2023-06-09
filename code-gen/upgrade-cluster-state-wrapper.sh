@@ -61,13 +61,16 @@ if test -z "${NEW_VERSION}"; then
   exit 1
 fi
 
+PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL:-$(git grep ^K8S_GIT_URL= | head -1 | cut -d= -f2)}"
+PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL:-https://github.com/pingidentity/${PING_CLOUD_BASE}}"
+
 # Clone the upgrade script from p1as-upgrades repo
 if ! test "${P1AS_UPGRADES_REPO}"; then
   REPO_CLONE_BASE_DIR="$(mktemp -d)"
   P1AS_UPGRADES_REPO_URL="https://gitlab.corp.pingidentity.com/ping-cloud-private-tenant/p1as-upgrades"
+
+  # Derive the upgrade script version from NEW_VERSION env var
   UPGRADE_SCRIPT_VERSION="PDO-5409-move-upgrade-script"
-#  BRANCH="${NEW_VERSION%%v*.}"
-  # Get the upgrade script version from NEW_VERSION env var
   # NEW_VERSION=1.18.x.x -> UPGRADE_SCRIPT_VERSION=1.18
   # NEW_VERSION=v1.18-release-branch -> UPGRADE_SCRIPT_VERSION=v1.18-release-branch
   # NEW_VERSION=pdo-my-test -> UPGRADE_SCRIPT_VERSION=PDO-my-test or UPGRADE_SCRIPT_VERSION=v1.18-release-branch
@@ -89,7 +92,7 @@ UPGRADE_SCRIPT_PATH="${P1AS_UPGRADES_REPO}/${UPGRADE_DIR_NAME}/${UPGRADE_SCRIPT_
 
 if test -f "${UPGRADE_SCRIPT_PATH}"; then
   # Execute the upgrade script
-  "${UPGRADE_SCRIPT_PATH}"
+  PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL}" "${UPGRADE_SCRIPT_PATH}"
   exit $?
 else
   echo "=====> Unable to download Upgrade script version: ${UPGRADE_SCRIPT_VERSION}"
