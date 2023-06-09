@@ -62,7 +62,7 @@ if test -z "${NEW_VERSION}"; then
 fi
 
 PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL:-$(git grep ^K8S_GIT_URL= | head -1 | cut -d= -f2)}"
-PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL:-https://github.com/pingidentity/${PING_CLOUD_BASE}}"
+PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL:-https://github.com/pingidentity/ping-cloud-base}"
 
 # Clone the upgrade script from p1as-upgrades repo
 if ! test "${P1AS_UPGRADES_REPO}"; then
