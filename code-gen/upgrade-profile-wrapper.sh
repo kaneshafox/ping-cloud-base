@@ -92,7 +92,7 @@ UPGRADE_SCRIPT_PATH="${P1AS_UPGRADES_REPO}/${UPGRADE_DIR_NAME}/${UPGRADE_SCRIPT_
 
 if test -f "${UPGRADE_SCRIPT_PATH}"; then
   # Execute the upgrade script
-  PING_CLOUD_BASE_REPO_URL=${PING_CLOUD_BASE_REPO_URL} "${UPGRADE_SCRIPT_PATH}"
+  PING_CLOUD_BASE_REPO_URL="${PING_CLOUD_BASE_REPO_URL}" "${UPGRADE_SCRIPT_PATH}"
   exit $?
 else
   echo "=====> Unable to download Upgrade script version: ${UPGRADE_SCRIPT_VERSION}"
