@@ -73,7 +73,7 @@ if ! test "${P1AS_UPGRADES_REPO}"; then
   UPGRADE_SCRIPT_VERSION="PDO-5409-move-upgrade-script"
   # NEW_VERSION=1.18.x.x -> UPGRADE_SCRIPT_VERSION=1.18
   # NEW_VERSION=v1.18-release-branch -> UPGRADE_SCRIPT_VERSION=v1.18-release-branch
-  # NEW_VERSION=pdo-my-test -> UPGRADE_SCRIPT_VERSION=PDO-my-test or UPGRADE_SCRIPT_VERSION=v1.18-release-branch
+  # NEW_VERSION=pdo-my-test -> UPGRADE_SCRIPT_VERSION=PDO-my-test
 
   pushd_quiet "${REPO_CLONE_BASE_DIR}"
   echo "=====> Cloning ${P1AS_UPGRADES}@${UPGRADE_SCRIPT_VERSION} from ${P1AS_UPGRADES_REPO_URL} to '${REPO_CLONE_BASE_DIR}'"
