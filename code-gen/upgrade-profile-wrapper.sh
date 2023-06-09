@@ -33,6 +33,9 @@
 P1AS_UPGRADES='p1as-upgrades'
 UPGRADE_SCRIPT_NAME='upgrade-profile-repo.sh'
 UPGRADE_DIR_NAME='upgrade-scripts'
+# For release branches this value is set to the developer branches
+# For tags, the tag-release script changes this value to the v*.*-release-branch
+UPGRADE_REPO_VERSION='v1.19-dev-branch'
 
 ########################################################################################################################
 # Invokes pushd on the provided directory but suppresses stdout and stderr.
@@ -69,11 +72,8 @@ if ! test "${P1AS_UPGRADES_REPO}"; then
   REPO_CLONE_BASE_DIR="$(mktemp -d)"
   P1AS_UPGRADES_REPO_URL="https://gitlab.corp.pingidentity.com/ping-cloud-private-tenant/p1as-upgrades"
 
-  # Derive the upgrade script version from NEW_VERSION env var
-  UPGRADE_SCRIPT_VERSION="PDO-5409-move-upgrade-script"
-  # NEW_VERSION=1.18.x.x -> UPGRADE_SCRIPT_VERSION=1.18
-  # NEW_VERSION=v1.18-release-branch -> UPGRADE_SCRIPT_VERSION=v1.18-release-branch
-  # NEW_VERSION=pdo-my-test -> UPGRADE_SCRIPT_VERSION=PDO-my-test
+  # Set the upgrade script version
+  UPGRADE_SCRIPT_VERSION="${UPGRADE_SCRIPT_VERSION:-${UPGRADE_REPO_VERSION}}"
 
   pushd_quiet "${REPO_CLONE_BASE_DIR}"
   echo "=====> Cloning ${P1AS_UPGRADES}@${UPGRADE_SCRIPT_VERSION} from ${P1AS_UPGRADES_REPO_URL} to '${REPO_CLONE_BASE_DIR}'"
