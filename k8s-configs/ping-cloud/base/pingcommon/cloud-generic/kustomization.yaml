@@ -9,7 +9,7 @@ commonLabels:
 generatorOptions:
   disableNameSuffixHash: true
 
-configMapGenerator:
+#configMapGenerator:
 #- name: pingcommon-init
 #  files:
 #  - scripts/copy-dependencies.sh
