@@ -9,7 +9,7 @@ commonLabels:
 generatorOptions:
   disableNameSuffixHash: true
 
-#configMapGenerator:
+configMapGenerator:
 #- name: pingcommon-init
 #  files:
 #  - scripts/copy-dependencies.sh
@@ -17,9 +17,9 @@ generatorOptions:
 #  - scripts/wait-for-pds.sh
 #  - scripts/utils.lib.sh
 #  - scripts/logger.lib.sh
-#- name: pingcommon-environment-variables
-#  envs:
-#  - env_vars
+- name: pingcommon-environment-variables
+  envs:
+  - env_vars
 
 resources:
 - namespace.yaml
