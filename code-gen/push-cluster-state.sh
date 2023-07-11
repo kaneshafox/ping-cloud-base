@@ -242,9 +242,9 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       echo "Cleaning up ${PWD}"
       dir_deep_clean "${PWD}"
     else
-      for app_path in ${APP_PATHS}; do
-        echo "Cleaning up ${PWD}/${app_path}"
-        dir_deep_clean "${PWD}/${app_path}"
+      for app in ${APPS_TO_PUSH}; do
+        echo "Cleaning up ${PWD}/${app}"
+        dir_deep_clean "${PWD}/${app}"
       done
     fi
 
