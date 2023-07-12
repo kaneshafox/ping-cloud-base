@@ -27,6 +27,10 @@
 #   PUSH_TO_SERVER -> A flag indicating whether or not to push the code to the remote server. Defaults to true.
 #   DISABLE_GIT -> Don't interact with git, only change the file structure locally - best used for testing
 #       git-ops-command.sh rendering of files as if in a CSR
+#   APPS_TO_PUSH -> An optional space-separated list of apps to push. Defaults to everything, if unset
+#       If provided, it must match the app directories that are created at the root of the cluster state repo,
+#       i.e. 'k8s-configs p1as-beluga-tools'
+
 
 # Global variables
 CLUSTER_STATE_REPO_DIR='cluster-state'
@@ -190,9 +194,10 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   echo "Processing branch '${GIT_BRANCH}' for environment '${ENV}' and default branch '${DEFAULT_CDE_BRANCH}'"
 
   if is_all_apps; then
-    # Get app paths
+    # Get all app paths
     APP_PATHS=$(find "${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}" -mindepth 1 -maxdepth 1 -type d)
   else
+    # Get only APPS_TO_PUSH paths
     for app in ${APPS_TO_PUSH}; do
       APP_PATHS="${APP_PATHS}${GENERATED_CODE_DIR}/${CLUSTER_STATE_REPO_DIR}/${ENV_OR_BRANCH}/${app} "
     done
@@ -242,6 +247,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
       echo "Cleaning up ${PWD}"
       dir_deep_clean "${PWD}"
     else
+      # Clean up only APPS_TO_PUSH
       for app in ${APPS_TO_PUSH}; do
         echo "Cleaning up ${PWD}/${app}"
         dir_deep_clean "${PWD}/${app}"
@@ -249,22 +255,19 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     fi
 
     if "${IS_PROFILE_REPO}" || "${INCLUDE_PROFILES_IN_CSR}"; then
-      #TODO: figure out what to do here
-      if is_all_apps; then
-        # Copy the base files into the repo.
-        src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
-        echo "Copying base files from ${src_dir} to ${PWD}"
-        cp "${src_dir}"/.gitignore ./
-        cp "${src_dir}"/upgrade-profile-wrapper.sh ./
+      # Copy the base files into the repo.
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}"
+      echo "Copying base files from ${src_dir} to ${PWD}"
+      cp "${src_dir}"/.gitignore ./
+      cp "${src_dir}"/upgrade-profile-wrapper.sh ./
 
-        # Copy the profiles.
-        mkdir -p "${PROFILES_DIR}"
+      # Copy the profiles.
+      mkdir -p "${PROFILES_DIR}"
 
-        # Copy the profiles.
-        src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/"
-        echo "Copying ${src_dir} to ${PROFILES_DIR}"
-        find "${src_dir}" -maxdepth 1 -mindepth 1 -type d -exec cp -pr {} "${PROFILES_DIR}"/ \;
-      fi
+      # Copy the profiles.
+      src_dir="${GENERATED_CODE_DIR}/${PROFILE_REPO_DIR}/${PROFILES_DIR}/${ENV_OR_BRANCH}/"
+      echo "Copying ${src_dir} to ${PROFILES_DIR}"
+      find "${src_dir}" -maxdepth 1 -mindepth 1 -type d -exec cp -pr {} "${PROFILES_DIR}"/ \;
     fi
 
     if ! "${IS_PROFILE_REPO}"; then
