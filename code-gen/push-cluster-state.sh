@@ -31,7 +31,6 @@
 #       If provided, it must match the app directories that are created at the root of the cluster state repo,
 #       i.e. 'k8s-configs p1as-beluga-tools'
 
-
 # Global variables
 CLUSTER_STATE_REPO_DIR='cluster-state'
 K8S_CONFIGS_DIR='k8s-configs'
@@ -242,12 +241,12 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   fi
 
   if "${IS_PRIMARY}"; then
-    # Clean-up the repo.
     if is_all_apps; then
+      # Clean-up everything in the repo.
       echo "Cleaning up ${PWD}"
       dir_deep_clean "${PWD}"
     else
-      # Clean up only APPS_TO_PUSH
+      # Clean up only APPS_TO_PUSH directories
       for app in ${APPS_TO_PUSH}; do
         echo "Cleaning up ${PWD}/${app}"
         dir_deep_clean "${PWD}/${app}"
