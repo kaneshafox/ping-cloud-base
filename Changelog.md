@@ -31,6 +31,7 @@ _Changes:_
 
 - [X] PDO-4606 Create a new init container to upgrade PA and PA-WAS and mount volume to admin pod once upgrade is successful
 - [X] PDO-4779 Modify seal.sh script to work for microservices
+- [X] PDO-4896 Update ping-cloud-base karpenter version to v0.28.1
 - [X] PDO-5110 OpenSearch migration: Install Opensearch side-by-side with Elastic
 - [X] PDO-5112 OpenSearch migration: Migrate index templates
 - [X] PDO-5113 OpenSearch migration: Change logstash pipelines to send data to OS instead ES
@@ -74,6 +75,7 @@ _Changes:_
 - [X] PDO-5705 Update PCB with toolkit image used as replacement for bitnami/kubectl
 - [X] PDO-5709 Fix intermittent pingone integration test failures
 - [X] PDO-5718 Update PGO dashboards to use grafana CRD
+- [X] PDO-5741 OS: Index migration fails for shrink-*-logstash-* indexes
 
 ### 1.18.0.0
 
