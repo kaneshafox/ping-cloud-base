@@ -7,6 +7,17 @@
 #**********************************************************************************************************************
 
 ########################################################################################################################
+# Prints script usage
+########################################################################################################################
+usage() {
+  echo "Usage: ${0} --out_dir [OUT_DIR] --region [REGION]
+  where
+    OUT_DIR => OPTIONAL directory to output the Kustomize built yaml files
+    REGION => OPTIONAL region to build & validate
+  "
+}
+
+########################################################################################################################
 # Pulls all helm charts in the provided directory, so that kustomize runs with locally pulled chart
 # This is the workaround for https://github.com/kubernetes-sigs/kustomize/issues/4381
 #
@@ -47,11 +58,47 @@ cleanup_charts() {
   find . -type d -name "charts" -exec rm -rf {} +
 }
 
+########################################################################################################################
+# Parses arguments passed into the script
+########################################################################################################################
+parseArgs() {
+  # Credit: https://stackoverflow.com/a/14203146/5521736
+  while [[ $# -gt 0 ]]; do
+    case "${1}" in
+      --out-dir)
+        if test -n "${OUT_DIR}"; then
+          echo "OUT_DIR already set"
+          usage
+          exit 1
+        fi
+        OUT_DIR="${2}"
+        shift # past option
+        shift # past value
+        ;;
+      --region)
+        if test -n "${REGION}"; then
+          echo "REGION already set"
+          usage
+          exit 1
+        fi
+        REGION="${2}"
+        shift # past option
+        shift # past value
+        ;;
+      -*)
+        echo "Unknown option ${1}"
+        usage
+        exit 1
+        ;;
+    esac
+  done
+}
 
 #### SCRIPT START ####
 
 # if VERBOSE is true, then output line-by-line execution
 "${VERBOSE:-false}" && set -x
+parseArgs "$@"
 
 failures_list=""
 RED="\033[0;31m"
@@ -62,16 +109,36 @@ cleanup_charts
 
 # find all the apps in the CSR directory except k8s-configs, values-files, hidden ('.'), or base directories
 app_region_paths=$(find . -type d -depth 2 ! -path './k8s-configs*' ! -path './values-files*' ! -path './.*' ! -path './*/base')
-echo "Validating the following app paths:"
-echo "${app_region_paths}"
+
+if test -z "${app_region_paths}"; then
+  echo "No microservices to validate!"
+  exit 0
+fi
 
 # validate kustomize build succeeds for each app
 for app_path in ${app_region_paths}; do
+  # if REGION is set and this dir does not match skip kustomize build
+  if test -n "${REGION}"; then
+    app_region="$(basename "${app_path}")"
+    if test "${app_region}" != "${REGION}"; then
+      continue
+    fi
+  fi
+
+  echo "---"
+  echo "Validating app path: ${app_path}"
+
   # pull the helm charts
   pull_helm_charts "${app_path}"
 
   # kustomize build
-  result=$( (kustomize build --load-restrictor LoadRestrictionsNone --enable-helm "${app_path}") 2>&1)
+  if test -z "${OUT_DIR}"; then
+    result=$( (kustomize build --load-restrictor LoadRestrictionsNone --enable-helm "${app_path}" ) 2>&1)
+  else
+    full_out_dir="${OUT_DIR}/${app_path#./}"
+    mkdir -p "${full_out_dir}"
+    result=$( (kustomize build --load-restrictor LoadRestrictionsNone --enable-helm --output "${full_out_dir}" "${app_path}" ) 2>&1)
+  fi
   # if kustomize build fails: add to failure list and output the error
   if test $? -ne 0; then
     failures_list="${failures_list}kustomize build: ${app_path}\n"
