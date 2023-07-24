@@ -38,12 +38,11 @@ pull_helm_charts() {
     num_charts=$(yq ".helmCharts | length" "${chart_file}")
 
     # loop through chart definitions in the file
-    for (( i=1; i<=num_charts; i++ ))
+    for (( i=0; i<num_charts; i++ ))
     do
       # use yq to get the chart's information (repo, version)
-      chart_version="$(index="${i}" yq ".helmCharts[${index}].version" "${chart_file}")"
-      chart_repo="$(index="${i}" yq ".helmCharts[${index}].repo" "${chart_file}")"
-
+      chart_version="$(INDEX="${i}" yq ".helmCharts[strenv(INDEX)].version" "${chart_file}")"
+      chart_repo="$(INDEX="${i}" yq ".helmCharts[strenv(INDEX)].repo" "${chart_file}")"
       # pull the chart
       helm pull --untar --untardir "${chart_dir}" "${chart_repo}" --version "${chart_version}"
     done
@@ -82,6 +81,7 @@ parseArgs() {
           exit 1
         fi
         BUILD_REGION="${2}"
+        echo "Running script on region ${BUILD_REGION}..."
         shift # past option
         shift # past value
         ;;
@@ -108,26 +108,18 @@ NO_COLOR="\033[0m"
 cleanup_charts
 
 # find all the apps in the CSR directory except k8s-configs, values-files, hidden ('.'), or base directories
-app_region_paths=$(find . -type d -depth 2 ! -path './k8s-configs*' ! -path './values-files*' ! -path './.*' ! -path './*/base')
+app_region_paths=$(find . -type d -depth 2 -path "./*${BUILD_REGION}" ! -path './k8s-configs*' ! -path './values-files*' ! -path './.*' ! -path './*/base')
 
 if test -z "${app_region_paths}"; then
   echo "No microservices to validate!"
   exit 0
 fi
 
+echo "Validating the following app paths:"
+echo "${app_region_paths}"
+
 # validate kustomize build succeeds for each app
 for app_path in ${app_region_paths}; do
-  # if REGION is set and this dir does not match skip kustomize build
-  if test -n "${BUILD_REGION}"; then
-    app_region="$(basename "${app_path}")"
-    if test "${app_region}" != "${BUILD_REGION}"; then
-      continue
-    fi
-  fi
-
-  echo "---"
-  echo "Validating app path: ${app_path}"
-
   # pull the helm charts
   pull_helm_charts "${app_path}"
 
