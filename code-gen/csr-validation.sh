@@ -10,10 +10,10 @@
 # Prints script usage
 ########################################################################################################################
 usage() {
-  echo "Usage: ${0} --out_dir [OUT_DIR] --region [REGION]
+  echo "Usage: ${0} --out-dir [OUT_DIR] --region [BUILD_REGION]
   where
     OUT_DIR => OPTIONAL directory to output the Kustomize built yaml files
-    REGION => OPTIONAL region to build & validate
+    BUILD_REGION => OPTIONAL region to build & validate
   "
 }
 
@@ -76,12 +76,12 @@ parseArgs() {
         shift # past value
         ;;
       --region)
-        if test -n "${REGION}"; then
-          echo "REGION already set"
+        if test -n "${BUILD_REGION}"; then
+          echo "BULD_REGION already set"
           usage
           exit 1
         fi
-        REGION="${2}"
+        BUILD_REGION="${2}"
         shift # past option
         shift # past value
         ;;
@@ -118,9 +118,9 @@ fi
 # validate kustomize build succeeds for each app
 for app_path in ${app_region_paths}; do
   # if REGION is set and this dir does not match skip kustomize build
-  if test -n "${REGION}"; then
+  if test -n "${BUILD_REGION}"; then
     app_region="$(basename "${app_path}")"
-    if test "${app_region}" != "${REGION}"; then
+    if test "${app_region}" != "${BUILD_REGION}"; then
       continue
     fi
   fi
