@@ -102,7 +102,7 @@ patchesStrategicMerge:
       purpose: service-account-for-ping-cloud-stack
       ${IRSA_PING_ANNOTATION_KEY_VALUE}
 
-patchesJson6902:
+#patchesJson6902:
 
 # pingcloud-metadata ingress
 #- target:
