@@ -75,7 +75,6 @@ global:
   pingCloudNamespace: "${PING_CLOUD_NAMESPACE}"
 
   # k8sGitBranch is the ping-cloud-base git branch for base Kubernetes manifests
-  # TODO: maybe rename this to belugaVersion?
   k8sGitBranch: "${K8S_GIT_BRANCH}"
 
   # ecrRegistryName is the name of the Docker image registry
@@ -155,18 +154,6 @@ global:
 
   external_ingress_enabled: ${EXTERNAL_INGRESS_ENABLED}
   #####################################################################################################################
-
-########################################################################################################################
-#TODO: Are these needed anymore now that we're using values files?
-# If they are needed uncomment & move to the 1st section
-# If they are still commented out when we get to PDO-4842, they will be deleted
-########################################################################################################################
-# kustomizeBase: ${KUSTOMIZE_BASE}
-
-# ansibleBelugaImageTag: v1.18-release-branch-latest
-
-# clusterNameLc: ${CLUSTER_NAME_LC} # Helm has a "lower" function that can be used with clusterName
-
 
 ########################################################################################################################
 #TODO: Move these to app values.yaml files as apps migrate
