@@ -31,7 +31,9 @@
 - Re-enable PingCentral for CI/CD dev environments which are now deployed using generate-cluster-state.sh
 - Migrated 'profiles' directory away from root of PCB, and into 'code-gen' root dir.  Also removed 'aws' subdir.
 - Improve alerts. JSON format + link to runbook
+- Limit backup/restore logging for PD
 - enrichment-bootstrap Docker image scripts refactoring
+- Change PD alerts to see more specific errors
 - Add p1as-beluga-tools microservice to PCB
 
 _Changes:_
@@ -77,6 +79,7 @@ _Changes:_
 - [X] PDO-5467 When rolling pods NLB connection draining isn't occuring causing service interruption
 - [X] PDO-5527 OpenSearch Post-Migration: Alerting improvements
 - [X] PDO-5543 New Prometheus alerts for Kubernetes metrics
+- [X] PDO-5545 Change PD alerts to see more specific errors
 - [X] PDO-5549 Update kube-state-metrics cluster tool to v2.8.1 for EKS 1.26
 - [X] PDO-5558 Mirror our own version of newrelic images
 - [X] PDO-5571 Update nginx-ingress-controller to v1.6.4 to support EKS 1.26
@@ -90,6 +93,7 @@ _Changes:_
 - [X] PDO-5705 Update PCB with toolkit image used as replacement for bitnami/kubectl
 - [X] PDO-5709 Fix intermittent pingone integration test failures
 - [X] PDO-5718 Update PGO dashboards to use grafana CRD
+- [X] PDO-5724 Limit backup/restore logging for PD
 - [X] PDO-5741 OS: Index migration fails for shrink-*-logstash-* indexes
 
 ### 1.18.0.0
