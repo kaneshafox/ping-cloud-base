@@ -19,7 +19,7 @@ stages:
 ## Global environment variables ##
 variables:
   DELETE_ENV_AFTER_PIPELINE: 'true'
-  K8S_DEPLOY_TOOLS: public.ecr.aws/r2h3l6e4/platform-pipeline/k8s-deploy-tools/dev@sha256:f3f5922678922c22e0ba21be42b42370c6143eaf699ef3083d57c0be06e2e5e9
+  K8S_DEPLOY_TOOLS: public.ecr.aws/r2h3l6e4/platform-pipeline/k8s-deploy-tools/dev@sha256:eb7653599cf83d46efb62693a7ad4cf311045e46cb368ace7f3c27c50fd1608c
   SHARED_CI_SCRIPTS_DIR: "/ci-scripts"
   BRANCH_SKIP_TESTS: >
     pingaccess/08-artifact-test.sh
