@@ -9,9 +9,9 @@ if skipTest "${0}"; then
 fi
 
 testArgoP1ASBootstrapSucceeded() {
-  status=$(kubectl get pods --selector=job-name=argocd-p1as-bootstrap -n argocd -o json | jq -r '.items[].status.phase')
+  status=$(kubectl get pods --selector=job-name=argocd-p1as-bootstrap -n argocd -o json | jq -r '.items[].status.containerStatuses[].ready')
   assertEquals 0 $?
-  assertEquals "The status of the p14c-bootstrap pod should be Succeeded but was: ${status}" "${status}" "Succeeded"
+  assertEquals "The status of the p14c-bootstrap pod should be ready but was: ${status}" "true" "${status}"
 }
 
 
