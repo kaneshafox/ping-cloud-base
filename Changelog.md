@@ -142,6 +142,7 @@
 - No data on Karpenter Grafana dashboards
 - Update pod memory limits for PingDirectory
 - Update pod cpu limits for PingDirectory
+- Disable ArgoCD admin user after SSO setup
 
 _Changes:_
 
@@ -327,6 +328,7 @@ _Changes:_
 - [X] PDO-6713 Metadata is missing in NewRelic pod logs
 - [X] PDO-6724 Patch PF admin test environment memory and cpu limits to 4Gi
 - [X] PDO-6726 Healthcheck feature is available when the feature flag is turned on
+- [X] PDO-6727 Disable Argocd admin user once SSO is configured
 - [X] PDO-6731 Logstash statefulSet needs AZ specific scheduling
 - [X] PDO-6762 Update cluster-autoscaler v1.29.0 for eks 1.28
 - [X] PDO-6765 Create log based alert for 'signal 9' issues in ingress
