@@ -145,6 +145,7 @@
 - Update pod cpu limits for PingDirectory
 - Upgrade ArgoCD to v2.10.0
 - Remove argocd-events, Prometheus alerts, rules, alertmanager
+- Remove ArgoCD Image Updater
 
 _Changes:_
 
@@ -343,6 +344,7 @@ _Changes:_
 - [X] PDO-6674 Logstash: Parsing issue with pd-errors logs
 - [X] PDO-6694 Update pod memory limits for PingDirectory
 - [X] PDO-6695 Update pod cpu limits for PingDirectory
+- [X] PDO-6810 Remove argocd-image-updater k8s resources from ping-cloud-base
 
 ### 1.18.0.0
 
