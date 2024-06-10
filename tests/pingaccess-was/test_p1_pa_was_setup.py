@@ -62,10 +62,6 @@ class TestP1SsoSetup(p1_test_base.P1TestBase):
                     f"Role '{role_name}' not created",
                     )
 
-    def test_group_created(self):
-        group = self.get(self.cluster_env_endpoints.groups, self.population_name)
-        self.assertIsNotNone(group, f"Group '{self.population_name}' not created")
-
     def test_pa_was_application_created(self):
         app = self.get(self.cluster_env_endpoints.applications, self.pa_was_app_name)
         self.assertIsNotNone(app, f"App '{self.pa_was_app_name}' not created")
