@@ -174,16 +174,21 @@ role.attribute.name=${PF_OIDC_ROLE_ATTRIBUTE_NAME}
 #     role.admin.2=
 #     role.admin.3=
 #
-role.admin=${PF_OIDC_ROLE_ADMIN}
-role.cryptoManager=${PF_OIDC_ROLE_CRYPTOMANAGER}
-role.userAdmin=${PF_OIDC_ROLE_USERADMIN}
+role.admin.1=${PF_OIDC_ROLE_ADMIN_1}
+role.admin.2=${PF_OIDC_ROLE_ADMIN_2}
+role.cryptoManager.1=${PF_OIDC_ROLE_CRYPTOMANAGER_1}
+role.cryptoManager.2=${PF_OIDC_ROLE_CRYPTOMANAGER_2}
+role.userAdmin.1=${PF_OIDC_ROLE_USERADMIN_1}
+role.userAdmin.2=${PF_OIDC_ROLE_USERADMIN_2}
 
 # The expressionAdmin role must only be granted to the administrators with admin role.
-role.expressionAdmin=${PF_OIDC_ROLE_EXPRESSIONADMIN}
+role.expressionAdmin.1=${PF_OIDC_ROLE_EXPRESSIONADMIN_1}
+role.expressionAdmin.2=${PF_OIDC_ROLE_EXPRESSIONADMIN_2}
 
 #   -----------------------------------------------
 #   Auditor Role Attribute Value Mapping (OPTIONAL)
 #   -----------------------------------------------
 #   The auditor role overrides the privileges associated with the assignment of any other role for the same caller.
 #
-role.auditor=${PF_OIDC_ROLE_AUDITOR}
+role.auditor.1=${PF_OIDC_ROLE_AUDITOR_1}
+role.auditor.2=${PF_OIDC_ROLE_AUDITOR_2}
