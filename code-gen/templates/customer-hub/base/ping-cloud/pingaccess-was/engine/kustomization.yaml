@@ -40,12 +40,6 @@ patchesJson6902:
     - op: remove
       path: /spec/rules/0
 
-    # Remove PingFederate admin from PingAccess-WAS
-    - op: remove
-      path: /spec/tls/0/hosts/1
-    - op: remove
-      path: /spec/rules/1
-
     # Grafana to pingaccess was runtime
     - op: replace
       path: /spec/tls/0/hosts/0

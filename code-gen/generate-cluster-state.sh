@@ -1386,7 +1386,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
     if test "${ENV}" = "${CUSTOMER_HUB}"; then
       argo_host_index=5
     else
-      argo_host_index=6
+      argo_host_index=5
     fi
     export argocd_ingress_patch="
 # Argo CD pingaccess was runtime
