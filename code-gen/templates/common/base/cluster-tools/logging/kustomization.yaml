@@ -84,3 +84,16 @@ patchesJson6902:
     - op: replace
       path: /metadata/annotations/external-dns.alpha.kubernetes.io~1hostname
       value: opensearch.${DNS_ZONE}
+
+- target:
+    group: networking.k8s.io
+    version: v1
+    kind: Ingress
+    name: opensearch-ui-ingress
+  patch: |
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: logs.${DNS_ZONE}
+    - op: replace
+      path: /spec/rules/0/host
+      value: logs.${DNS_ZONE}

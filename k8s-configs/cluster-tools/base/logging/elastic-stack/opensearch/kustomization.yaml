@@ -16,6 +16,7 @@ resources:
 - serviceaccount.yaml
 - tenants.yaml
 - opensearch-service-monitor.yaml
+- ingress.yaml
 
 openapi:
   path: opensearch-schema.json

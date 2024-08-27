@@ -41,6 +41,19 @@ patchesJson6902:
       path: /spec/rules/0/host
       value: pingaccess-admin-api.${DNS_ZONE}
 
+- target:
+    group: networking.k8s.io
+    version: v1
+    kind: Ingress
+    name: pingaccess-admin-ui-ingress
+  patch: |
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: pingaccess-admin.${DNS_ZONE}
+    - op: replace
+      path: /spec/rules/0/host
+      value: pingaccess-admin.${DNS_ZONE}
+
 # Set a hostname for all the headless services so their endpoint IPs are published to Route53
 - target:
     version: v1

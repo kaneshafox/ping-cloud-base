@@ -9,6 +9,7 @@ resources:
 - argocd-p1as-bootstrap.yaml
 - customer-p1-app.yaml
 - customer-p1-connection.yaml
+- ingress.yaml
 
 generatorOptions:
   disableNameSuffixHash: true

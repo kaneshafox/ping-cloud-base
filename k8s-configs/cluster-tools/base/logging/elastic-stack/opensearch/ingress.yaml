@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opensearch-ui-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/enable-modsecurity: "true"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      Include /etc/nginx/owasp-modsecurity-crs/nginx-modsecurity.conf
+      SecRuleEngine DetectionOnly
+      SecRequestBodyAccess On
+      SecAuditEngine RelevantOnly
+      SecAuditLogParts ABCDEFGHIJKZ
+      SecAuditLogType Serial
+      SecAuditLogFormat JSON
+      SecAuditLog /dev/stdout
+spec:
+  ingressClassName: nginx-public
+  tls:
+    - hosts:
+        - logs.ping-demo.com
+  rules:
+    - host: logs.ping-demo.com
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: opensearch-dashboards
+                port:
+                  number: 5601
