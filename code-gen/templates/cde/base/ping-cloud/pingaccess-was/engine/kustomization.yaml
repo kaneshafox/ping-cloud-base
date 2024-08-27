@@ -58,8 +58,8 @@ patchesJson6902:
 
     # Healthcheck httpbin service through PA-WAS engines
     - op: replace
-      path: /spec/tls/0/hosts/3
+      path: /spec/tls/0/hosts/2
       value: healthcheck-httpbin-pa-was.${DNS_ZONE}
     - op: replace
-      path: /spec/rules/3/host
+      path: /spec/rules/2/host
       value: healthcheck-httpbin-pa-was.${DNS_ZONE}
