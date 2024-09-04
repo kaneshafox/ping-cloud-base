@@ -38,6 +38,7 @@ _Changes:_
 - [X] PDO-7672 Thanos: Metrics older than 15 days are still present
 - [X] PDO-8085 Restrict PingFederate and PingAccess heartbeat response
 - [X] PDO-8150 Improve Stability and Shutdown Handling
+- [X] PDO-8212 Add teleport for cluster access
 
 ### 1.19.1.0
 
