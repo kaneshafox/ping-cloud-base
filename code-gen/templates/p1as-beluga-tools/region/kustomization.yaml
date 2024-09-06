@@ -15,13 +15,6 @@ helmCharts:
       - values.yaml   # app specific values.yaml
     version: v2.0-release-branch-latest
     repo: oci://${ECR_REGISTRY_NAME}/dev/p1as-beluga-tools
-  - name: teleport-kube-agent
-    namespace: teleport
-    valuesFile: ../../values-files/${REGION_NICK_NAME}/teleport-values.yaml
-    version: 16.2.0
-    repo: https://charts.releases.teleport.dev
-    includeCRDs: true
-    releaseName: teleport
 
 ### This field is used to trigger a resync of the p1as-beluga-tools helm chart ###
 configMapGenerator:
