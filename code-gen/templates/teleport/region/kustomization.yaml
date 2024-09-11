@@ -8,7 +8,7 @@ resources:
 helmCharts:
   - name: teleport-kube-agent
     namespace: teleport
-    valuesFile: ../../values-files/${REGION_NICK_NAME}/teleport-values.yaml
+    valuesFile: values.yaml
     version: 16.2.0
     repo: https://charts.releases.teleport.dev
     includeCRDs: true

@@ -275,12 +275,17 @@
 #                                  | must also be provided and correspond to this       |
 #                                  | public key.                                        |
 #                                  |                                                    |
+# STAGE                            | The environment's "stage".                         | lab 
+#                                  | Lab/Preview/GA/Field/etc|                          |
+#                                  |                                                    |
 # SUPPORTED_ENVIRONMENT_TYPES      | The environment types that will be supported for   | dev test stage prod customer-hub
 #                                  | the customer                                       |
 #                                  |                                                    |
 # TARGET_DIR                       | The directory where the manifest files will be     | /tmp/sandbox
 #                                  | generated. If the target directory exists, it will |
 #                                  | be deleted.                                        |
+#                                  |                                                    |
+# TELEPORT_STAGE                   | The environment's stage to be supplied to teleport | Value of the "STAGE" variable
 #                                  |                                                    |
 # TENANT_DOMAIN                    | The tenant's domain suffix that's common to all    | ci-cd.ping-oasis.com
 #                                  | CDEs e.g. k8s-icecream.com. The tenant domain in   |
