@@ -609,10 +609,11 @@ organize_code_for_csr() {
     echo "For app '${app_name}':"
     echo "Using CDE_DEPLOY: ${CDE_DEPLOY}"
     echo "Using CHUB_DEPLOY:  ${CHUB_DEPLOY}"
+    echo "Using DEVELOPER_DEPLOY: ${DEVELOPER_DEPLOY}"
     echo
 
     # exclude anything that shouldn't deploy to dev envs
-    if (${IS_BELUGA_ENV} && !${DEVELOPER_DEPLOY}); then
+    if (${ IS_BELUGA_ENV} && test ${DEVELOPER_DEPLOY} = "false"); then
       continue
     fi
 
