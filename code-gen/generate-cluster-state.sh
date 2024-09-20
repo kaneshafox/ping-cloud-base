@@ -611,6 +611,11 @@ organize_code_for_csr() {
     echo "Using CHUB_DEPLOY:  ${CHUB_DEPLOY}"
     echo
 
+    # exclude anything that shouldn't deploy to dev envs
+    if (${IS_BELUGA_ENV} && !${DEVELOPER_DEPLOY}); then
+      continue
+    fi
+
     # Add the app directory to the tmp directory if the deploy env var aligns with the env env var
     if (test "${ENV}" = "${CUSTOMER_HUB}" && ${CHUB_DEPLOY}) || (test "${ENV}" != "${CUSTOMER_HUB}" && ${CDE_DEPLOY}); then
       local app_target_dir=${ENV_DIR}/${app_name}
