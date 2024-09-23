@@ -619,6 +619,10 @@ organize_code_for_csr() {
 
     # exclude anything that shouldn't deploy to dev envs
     if (${IS_BELUGA_ENV} && test ${DEVELOPER_DEPLOY} = "false"); then
+      # reset env vars
+      CDE_DEPLOY=true
+      CHUB_DEPLOY=true
+      DEVELOPER_DEPLOY=true
       continue
     fi
 
