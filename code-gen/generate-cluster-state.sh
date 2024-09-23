@@ -652,6 +652,11 @@ organize_code_for_csr() {
       #  and redoing how derived variables are set
       substitute_vars "${app_target_dir}" "${REPO_VARS}"
     fi
+
+    # reset env vars
+    CDE_DEPLOY=true
+    CHUB_DEPLOY=true
+    DEVELOPER_DEPLOY=true
   done
 }
 
