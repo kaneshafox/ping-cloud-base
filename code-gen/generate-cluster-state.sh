@@ -599,6 +599,11 @@ organize_code_for_csr() {
   # find all the apps under code-gen/templates directory
   local app_paths=$(find "${TEMPLATES_HOME}" -maxdepth 1 -mindepth 1 -type d ! -path '*/cde' ! -path '*/common' ! -path '*/customer-hub' ! -path '*/fluxcd')
 
+  # set default env vars
+  CDE_DEPLOY=true
+  CHUB_DEPLOY=true
+  DEVELOPER_DEPLOY=true
+
   for app_path in ${app_paths}; do
     local app_name=$(basename "${app_path}")
 
