@@ -599,13 +599,13 @@ organize_code_for_csr() {
   # find all the apps under code-gen/templates directory
   local app_paths=$(find "${TEMPLATES_HOME}" -maxdepth 1 -mindepth 1 -type d ! -path '*/cde' ! -path '*/common' ! -path '*/customer-hub' ! -path '*/fluxcd')
 
-  # set default env vars
-  CDE_DEPLOY=true
-  CHUB_DEPLOY=true
-  DEVELOPER_DEPLOY=true
-
   for app_path in ${app_paths}; do
     local app_name=$(basename "${app_path}")
+
+    # set default env vars to prevent errors if they are not set
+    CDE_DEPLOY=true
+    CHUB_DEPLOY=true
+    DEVELOPER_DEPLOY=true
 
     # source the config or continue to next app if config not there
     source "${app_path}/config.sh" || continue
@@ -619,10 +619,6 @@ organize_code_for_csr() {
 
     # exclude anything that shouldn't deploy to dev envs
     if (${IS_BELUGA_ENV} && test ${DEVELOPER_DEPLOY} = "false"); then
-      # reset env vars
-      CDE_DEPLOY=true
-      CHUB_DEPLOY=true
-      DEVELOPER_DEPLOY=true
       continue
     fi
 
@@ -661,11 +657,6 @@ organize_code_for_csr() {
       #  and redoing how derived variables are set
       substitute_vars "${app_target_dir}" "${REPO_VARS}"
     fi
-
-    # reset env vars
-    CDE_DEPLOY=true
-    CHUB_DEPLOY=true
-    DEVELOPER_DEPLOY=true
   done
 }
 
