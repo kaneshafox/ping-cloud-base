@@ -603,9 +603,9 @@ organize_code_for_csr() {
     local app_name=$(basename "${app_path}")
 
     # set default env vars to prevent errors if they are not set
-    CDE_DEPLOY=true
-    CHUB_DEPLOY=true
-    DEVELOPER_DEPLOY=true
+    CDE_DEPLOY=false
+    CHUB_DEPLOY=false
+    DEVELOPER_DEPLOY=false
 
     # source the config or continue to next app if config not there
     source "${app_path}/config.sh" || continue
