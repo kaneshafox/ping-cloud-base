@@ -288,8 +288,6 @@
 #                                  | generated. If the target directory exists, it will |
 #                                  | be deleted.                                        |
 #                                  |                                                    |
-# TELEPORT_STAGE                   | The environment's stage to be supplied to teleport | Value of the "STAGE" variable
-#                                  |                                                    |
 # TENANT_DOMAIN                    | The tenant's domain suffix that's common to all    | ci-cd.ping-oasis.com
 #                                  | CDEs e.g. k8s-icecream.com. The tenant domain in   |
 #                                  | each CDE is assumed to have the CDE name as the    |
@@ -892,9 +890,6 @@ export ARGOCD_BOOTSTRAP_ENABLED="${ARGOCD_BOOTSTRAP_ENABLED:-true}"
 export EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED:-""}"
 export HEALTHCHECKS_ENABLED="${HEALTHCHECKS_ENABLED:-false}"
 export CUSTOMER_PINGONE_ENABLED="${CUSTOMER_PINGONE_ENABLED:-false}"
-
-### Teleport environment variables ###
-export TELEPORT_STAGE="${TELEPORT_STAGE:-${STAGE}}"
 
 ### Default environment variables ###
 export ECR_REGISTRY_NAME='public.ecr.aws/r2h3l6e4'
