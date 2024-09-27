@@ -22,6 +22,7 @@
 - Disabling anonymous login for OpenSearch and removing prometheus_read role
 - log4j2.xml.subst root logger follows PF_DEBUG_LEVEL
 - Enable runtime bulkhead via API for PingFederate
+- Upgrade Cluster Autoscaler to v1.30.2
 
 _Changes:_
 
@@ -37,8 +38,10 @@ _Changes:_
 - [X] PDO-7248 NewRelic: Upgrade APM agent to latest version
 - [X] PDO-7428 Update seal-secret-values.py to seal with namespace only. Update secret structure
 - [X] PDO-7445 Remove toplogy-descriptor volume mount from products where not needed
+- [X] PDO-7455 Upgrade Cluster Autoscaler to v1.30.2
 - [X] PDO-7469 De-duplicate prod-values.yaml
 - [X] PDO-7527 Grafana: Update PGO dashboards to be compatible with the current PGO version
+- [X] PDO-7564 Update number of shards for ingress index
 - [X] PDO-7608 Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - [X] PDO-7669 Thanos: Storage Gateway crashlooping with OOM killed when choosing old range of data on Prometheus/Grafana UI
 - [X] PDO-7671 Thanos: Compactor is erroring with not enough ephemeral-storage
