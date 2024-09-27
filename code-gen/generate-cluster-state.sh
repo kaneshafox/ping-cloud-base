@@ -622,7 +622,7 @@ organize_code_for_csr() {
     fi
 
     # Add the app directory to the tmp directory if the deploy env var aligns with the env env var
-    if (test "${ENV}" = "${CUSTOMER_HUB}" && ${CHUB_DEPLOY}) || (test "${ENV}" != "${CUSTOMER_HUB}" && ${CDE_DEPLOY}); then
+    if { test "${ENV}" = "${CUSTOMER_HUB}" && test "${CHUB_DEPLOY}" = "true"; } || { test "${ENV}" != "${CUSTOMER_HUB}" && test "${CDE_DEPLOY}" = "true"; }; then
       local app_target_dir=${ENV_DIR}/${app_name}
       mkdir -p "${app_target_dir}"
 
