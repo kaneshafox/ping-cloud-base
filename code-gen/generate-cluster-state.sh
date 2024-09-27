@@ -601,9 +601,9 @@ organize_code_for_csr() {
     local app_name=$(basename "${app_path}")
 
     # set default env vars to prevent errors if they are not set
-    CDE_DEPLOY=false
-    CHUB_DEPLOY=false
-    DEVELOPER_DEPLOY=false
+    unset CDE_DEPLOY
+    unset CHUB_DEPLOY
+    unset DEVELOPER_DEPLOY
 
     # source the config or continue to next app if config not there
     source "${app_path}/config.sh" || continue
@@ -616,7 +616,7 @@ organize_code_for_csr() {
     echo
 
     # exclude anything that shouldn't deploy to dev envs
-    if (${IS_BELUGA_ENV} && test ${DEVELOPER_DEPLOY} = "false"); then
+    if (${IS_BELUGA_ENV} && test "${DEVELOPER_DEPLOY}" = "false"); then
       continue
     fi
 
