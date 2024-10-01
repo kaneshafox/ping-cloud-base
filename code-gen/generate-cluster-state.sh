@@ -288,6 +288,9 @@
 #                                  | generated. If the target directory exists, it will |
 #                                  | be deleted.                                        |
 #                                  |                                                    |
+# TELEPORT_RESOURCE_ID             | The teleport resource ID provided by teleport      |
+#                                  | admin at initial setup time                        |
+#                                  |                                                    |
 # TENANT_DOMAIN                    | The tenant's domain suffix that's common to all    | ci-cd.ping-oasis.com
 #                                  | CDEs e.g. k8s-icecream.com. The tenant domain in   |
 #                                  | each CDE is assumed to have the CDE name as the    |
@@ -458,7 +461,8 @@ ${DASH_REPO_URL}
 ${DASH_REPO_BRANCH}
 ${APP_RESYNC_SECONDS}
 ${CERT_RENEW_BEFORE}
-${THANOS_S3_BUCKET_NAME}'
+${THANOS_S3_BUCKET_NAME}
+${TELEPORT_RESOURCE_ID}'
 
 # Variables to replace within the generated cluster state code
 REPO_VARS="${REPO_VARS:-${DEFAULT_VARS}}"
@@ -772,6 +776,8 @@ echo "Initial APP_RESYNC_SECONDS: ${APP_RESYNC_SECONDS}"
 echo "Initial DASHBOARD_REPO_URL: ${DASHBOARD_REPO_URL}"
 
 echo "Initial CERT_RENEW_BEFORE: ${CERT_RENEW_BEFORE}"
+
+echo "Initial TELEPORT_RESOURCE_ID: ${TELEPORT_RESOURCE_ID}"
 
 echo ---
 
@@ -1307,6 +1313,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   echo "Using IRSA_INGRESS_ANNOTATION_KEY_VALUE: ${IRSA_INGRESS_ANNOTATION_KEY_VALUE}"
   echo "Using NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
   echo "Using CLUSTER_ENDPOINT: ${CLUSTER_ENDPOINT}"
+  echo "Using TELEPORT_RESOURCE_ID: ${TELEPORT_RESOURCE_ID}"
 
   ######################################################################################################################
   # Massage files into correct structure for push-cluster-state script
