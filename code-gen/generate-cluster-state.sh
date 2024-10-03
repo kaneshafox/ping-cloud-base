@@ -683,6 +683,7 @@ fi
 ########################################################################################################################
 echo "Initial TENANT_NAME: ${TENANT_NAME}"
 echo "Initial SIZE: ${SIZE}"
+echo "Initial STAGE: ${STAGE}"
 
 echo "Initial SUPPORTED_ENVIRONMENT_TYPES: ${SUPPORTED_ENVIRONMENT_TYPES}"
 echo "Initial ENVIRONMENTS: ${ENVIRONMENTS}"
@@ -1003,6 +1004,7 @@ export CERT_RENEW_BEFORE="${CERT_RENEW_BEFORE:-720h0m0s}"
 ########################################################################################################################
 echo "Using TENANT_NAME: ${TENANT_NAME}"
 echo "Using SIZE: ${SIZE}"
+echo "Using STAGE: ${STAGE}"
 
 echo "Using SUPPORTED_ENVIRONMENT_TYPES: ${SUPPORTED_ENVIRONMENT_TYPES}"
 echo "Using IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
@@ -1314,6 +1316,7 @@ for ENV_OR_BRANCH in ${SUPPORTED_ENVIRONMENT_TYPES}; do
   echo "Using NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE: ${NLB_NGX_PUBLIC_ANNOTATION_KEY_VALUE}"
   echo "Using CLUSTER_ENDPOINT: ${CLUSTER_ENDPOINT}"
   echo "Using TELEPORT_RESOURCE_ID: ${TELEPORT_RESOURCE_ID}"
+  echo "Using STAGE: ${STAGE}"
 
   ######################################################################################################################
   # Massage files into correct structure for push-cluster-state script
