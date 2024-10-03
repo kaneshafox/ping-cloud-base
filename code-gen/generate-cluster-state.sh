@@ -462,7 +462,8 @@ ${DASH_REPO_BRANCH}
 ${APP_RESYNC_SECONDS}
 ${CERT_RENEW_BEFORE}
 ${THANOS_S3_BUCKET_NAME}
-${TELEPORT_RESOURCE_ID}'
+${TELEPORT_RESOURCE_ID}
+${STAGE}'
 
 # Variables to replace within the generated cluster state code
 REPO_VARS="${REPO_VARS:-${DEFAULT_VARS}}"
