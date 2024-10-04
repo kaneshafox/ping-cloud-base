@@ -1005,7 +1005,6 @@ export CERT_RENEW_BEFORE="${CERT_RENEW_BEFORE:-720h0m0s}"
 ########################################################################################################################
 echo "Using TENANT_NAME: ${TENANT_NAME}"
 echo "Using SIZE: ${SIZE}"
-echo "Using STAGE: ${STAGE}"
 
 echo "Using SUPPORTED_ENVIRONMENT_TYPES: ${SUPPORTED_ENVIRONMENT_TYPES}"
 echo "Using IS_MULTI_CLUSTER: ${IS_MULTI_CLUSTER}"
