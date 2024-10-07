@@ -6,6 +6,7 @@ namespace: teleport
 resources:
   - ../base/custom-resources
   - custom-resources
+  - namespace.yaml
 
 helmCharts:
   - name: teleport-kube-agent
