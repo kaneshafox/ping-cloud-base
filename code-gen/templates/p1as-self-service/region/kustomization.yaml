@@ -15,8 +15,7 @@ helmCharts:
       - values.yaml   # app specific values.yaml
     valuesInline:
       ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
-      profileBranch: PDO-8158
-    version: v2.0-PDO-8158
+    version: v2.0-PDO-8418-tls-sso
     repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev/p1as-self-service
     # version: v2.0-release-branch-latest
     # repo: oci://${ECR_REGISTRY_NAME}/dev/p1as-self-service
