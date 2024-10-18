@@ -14,6 +14,7 @@
 - Refactor update-profile-wrapper code to support new variables for microservice profile mirrors.
 - De-duplicate prod-values.yaml
 - To reorganize fluentbit configuration
+- Fluentbit revisit CICD integration test
 - Grafana fix PGO dashboard
 - Making Graviton as default for NON-GA environment, fix GA consistency across envs
 - Updating memory limits for thanos-storegateway
@@ -25,8 +26,9 @@
 - Enable runtime bulkhead via API for PingFederate
 - Upgrade Cluster Autoscaler to v1.30.2
 - CT Upg: Upgrade Karpenter to 0.37.3
-- Remove oidc.properties.subst from PingFederate and use environment variables
 - Adding FluentBit timestamp to standard log data for all log streams
+- Upgrade nginx-ingress-controller to v1.11.2 and SigSci agent to 4.57.0
+- Upgrade Argocd to v2.12.4
 
 _Changes:_
 
@@ -46,6 +48,7 @@ _Changes:_
 - [X] PDO-7456 CT Upg: Upgrade Karpenter to 0.37.3
 - [X] PDO-7469 De-duplicate prod-values.yaml
 - [X] PDO-7482 Reorganize fluentbit configuration
+- [X] PDO-7485 Fluentbit: Revisit CICD integration test
 - [X] PDO-7527 Grafana: Update PGO dashboards to be compatible with the current PGO version
 - [X] PDO-7564 Update number of shards for ingress index
 - [X] PDO-7608 Making Graviton as default for NON-GA environment, fix GA consistency across envs
@@ -55,13 +58,20 @@ _Changes:_
 - [X] PDO-7683 Enable runtime bulkhead via API for PingFederate
 - [X] PDO-8085 Restrict PingFederate and PingAccess heartbeat response
 - [X] PDO-8121 log4j2.xml.subst root logger follows PF_DEBUG_LEVEL
-- [X] PDO-8135 PingFederate SSO container set environment variables instead of .conf .property files
 - [X] PDO-8150 Improve Stability and Shutdown Handling
 - [X] PDO-8193 Microservices profile repo feature branch testing fix
 - [X] PDO-8194 Upgrade External DNS to v0.14.2
 - [X] PDO-8212 Add teleport for cluster access
 - [X] PDO-8363 OpenSearch: Add the Fluent Bit ingestion time field
 - [X] PDO-8196 Include the Fluent Bit ingestion time field in the customer pipeline
+- [X] PDO-8144 Upgrade nginx-ingress-controller to v1.11.2 and SigSci agent to 4.57.0
+- [X] PDO-8373 Upgrade Argocd to v2.12.4
+
+### 1.19.2.0
+
+_Changes:_
+
+- [X] PDO-8730 Prevent customer-p1-connection job from running on upgrades
 
 ### 1.19.1.0
 
