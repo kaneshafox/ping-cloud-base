@@ -1,5 +1,7 @@
 # p1as-self-service application settings
 selfService:
+  # The IRSA role ARN to be used for the ping serviceAccount
+  irsaSsAnnotationKeyValue: "${IRSA_SS_ANNOTATION_KEY_VALUE}"
   # Customization for p1as-self-service ingress resource
   ingress:
   # Customization for p1as-self-service service resource
