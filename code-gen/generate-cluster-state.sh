@@ -99,6 +99,11 @@
 #                                  | URL. For AWS S3 buckets, it must be an S3 URL,     |
 #                                  | e.g. s3://backups.                                 |
 #                                  |                                                    |
+# CONFIG_DATA_BUCKET_URI           | The URL of the config data S3 bucket. Provided as  | The string "ssm://pcpt/service/storage/config-data-bucket/uri".
+#                                  | an SSM path that will contain the S3 bucket name   |
+#                                  | and be replaced by discovery-service with the      |
+#                                  | actual bucket name used by hook scripts.           |
+#                                  |                                                    |
 # CLUSTER_STATE_REPO_URL           | The URL of the cluster-state repo.                 | https://github.com/pingidentity/ping-cloud-base
 #                                  |                                                    |
 # DEFAULT_CLUSTER_UPTIME           | The cluster default uptime used by kube-downscaler | Mon-Fri 09:00-:18:00 UTC
