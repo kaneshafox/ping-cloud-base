@@ -42,6 +42,7 @@ PING_ARTIFACT_REPO_URL=${PING_ARTIFACT_REPO_URL}
 PD_MONITOR_BUCKET_URL=${PD_MONITOR_BUCKET_URL}
 LOG_ARCHIVE_URL=${LOG_ARCHIVE_URL}
 BACKUP_URL=${BACKUP_URL}
+CONFIG_DATA_BUCKET_URI=${CONFIG_DATA_BUCKET_URI}
 
 ############################################################
 # Platform event queue and SSM variables
@@ -152,7 +153,7 @@ PINGDATASYNC_IMAGE_TAG=v2.2-release-branch-latest
 ############################################################
 # Ping solution image tags
 ############################################################
-BOOTSTRAP_IMAGE_TAG=v2.2-release-branch-latest
+BOOTSTRAP_IMAGE_TAG=PDO-11265
 P14C_INTEGRATION_IMAGE_TAG=v2.2-release-branch-latest
 
 ############################################################

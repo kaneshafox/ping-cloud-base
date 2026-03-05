@@ -377,6 +377,7 @@ ${PING_ARTIFACT_REPO_URL}
 ${PD_MONITOR_BUCKET_URL}
 ${LOG_ARCHIVE_URL}
 ${BACKUP_URL}
+${CONFIG_DATA_BUCKET_URI}
 ${PING_CLOUD_NAMESPACE}
 ${K8S_GIT_URL}
 ${K8S_GIT_BRANCH}
@@ -804,6 +805,7 @@ echo "Initial PING_ARTIFACT_REPO_URL: ${PING_ARTIFACT_REPO_URL}"
 echo "Initial PD_MONITOR_BUCKET_URL: ${PD_MONITOR_BUCKET_URL}"
 echo "Initial LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
 echo "Initial BACKUP_URL: ${BACKUP_URL}"
+echo "Initial CONFIG_DATA_BUCKET_URI: ${CONFIG_DATA_BUCKET_URI}"
 
 echo "Initial MYSQL_SERVICE_HOST: ${MYSQL_SERVICE_HOST}"
 echo "Initial MYSQL_USER: ${MYSQL_USER}"
@@ -926,6 +928,7 @@ export PING_ARTIFACT_REPO_URL="${PING_ARTIFACT_REPO_URL:-https://ping-artifacts.
 export PD_MONITOR_BUCKET_URL="${PD_MONITOR_BUCKET_URL:-ssm://pcpt/service/storage/pd-monitor/uri}"
 export LOG_ARCHIVE_URL="${LOG_ARCHIVE_URL:-unused}"
 export BACKUP_URL="${BACKUP_URL:-unused}"
+export CONFIG_DATA_BUCKET_URI="${CONFIG_DATA_BUCKET_URI:-ssm://pcpt/service/storage/config-data-bucket/uri}"
 
 export MYSQL_SERVICE_HOST="${MYSQL_SERVICE_HOST:-"pingcentraldb.${PRIMARY_TENANT_DOMAIN}"}"
 export MYSQL_USER="${MYSQL_USER:-ssm://aws/reference/secretsmanager//pcpt/ping-central/dbserver#username}"
@@ -1130,6 +1133,7 @@ echo "Using PING_ARTIFACT_REPO_URL: ${PING_ARTIFACT_REPO_URL}"
 echo "Using PD_MONITOR_BUCKET_URL: ${PD_MONITOR_BUCKET_URL}"
 echo "Using LOG_ARCHIVE_URL: ${LOG_ARCHIVE_URL}"
 echo "Using BACKUP_URL: ${BACKUP_URL}"
+echo "Using CONFIG_DATA_BUCKET_URI: ${CONFIG_DATA_BUCKET_URI}"
 
 echo "Using MYSQL_SERVICE_HOST: ${MYSQL_SERVICE_HOST}"
 echo "Using MYSQL_USER: ${MYSQL_USER}"

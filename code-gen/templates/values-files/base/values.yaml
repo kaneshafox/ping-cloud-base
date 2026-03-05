@@ -126,6 +126,8 @@ global:
   # backupUrl is the customer-specific backup URL for region
   backupUrl: "${BACKUP_URL}"
 
+  configDataBucketUri: "${CONFIG_DATA_BUCKET_URI}"
+
   ########################################################
   # Miscellaneous ping-cloud variables
   ########################################################
@@ -230,6 +232,8 @@ global:
 
   # Runbook: https://pingidentity.atlassian.net/wiki/spaces/PDA/pages/427688292/How+to+Enable+and+Disable+Healthchecks+-+1.19.0
   healthchecksEnabled: ${HEALTHCHECKS_ENABLED}
+
+  selfServiceEnabled: true
   #####################################################################################################################
 
   ########################################################
