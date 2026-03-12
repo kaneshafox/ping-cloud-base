@@ -233,7 +233,7 @@ global:
   # Runbook: https://pingidentity.atlassian.net/wiki/spaces/PDA/pages/427688292/How+to+Enable+and+Disable+Healthchecks+-+1.19.0
   healthchecksEnabled: ${HEALTHCHECKS_ENABLED}
 
-  selfServiceEnabled: true
+  selfServiceTemplatesEnabled: ${SELF_SERVICE_TEMPLATES_ENABLED}
   #####################################################################################################################
 
   ########################################################
