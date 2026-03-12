@@ -8,10 +8,133 @@ from pathlib import Path
 import boto3
 import pingone_ui as p1_ui
 import urllib3
+import yaml
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+import aws_utils
+import k8s_utils
+
+
+NAMESPACE = os.getenv("NAMESPACE", "ping-cloud")
+
+# Admin ConfigMap values
+AWS = aws_utils.AWSUtils()
+K8S = k8s_utils.K8sUtils()
+PF_ADMIN_ENV_VARS = K8S.get_configmap_values(configmap_name="pingfederate-admin-environment-variables", namespace=NAMESPACE)
+CONFIG_DATA_BUCKET_URI = AWS.get_parameter(name=PF_ADMIN_ENV_VARS.get("CONFIG_DATA_BUCKET_URI"))
+CONFIG_DATA_S3_SYNC_INTERVAL_SECONDS = int(PF_ADMIN_ENV_VARS.get("CONFIG_DATA_S3_SYNC_INTERVAL_SECONDS", "30"))
+
+# Paths inside the PF container — templates
+TEMPLATE_DIR = "/opt/out/instance/server/default/conf/template"
+TEMPLATE_DEFAULTS_DIR = "/opt/server/server/default/conf/template"
+TEMPLATE_S3_STAGING_DIR = "/opt/out/instance/server/default/tmp/template"
+TEMPLATE_S3_PREFIX = f"{CONFIG_DATA_BUCKET_URI}/pingfederate/templates/"
+
+
+class PFSyncTestHelper:
+	"""Reusable helper for S3 sync integration tests.
+
+	Each instance is bound to a specific target directory, defaults directory,
+	config-file path (inside the pod), and staging dir backup path.
+	"""
+
+	def __init__(
+		self,
+		k8s: k8s_utils.K8sUtils,
+		target_dir: str,
+		defaults_dir: str,
+		staging_dir: str,
+		s3_prefix: str,
+		sync_interval: int,
+	):
+		self.k8s = k8s
+		self.target_dir = target_dir
+		self.defaults_dir = defaults_dir
+		self.staging_dir = staging_dir
+		self.s3_prefix = s3_prefix
+		self.sync_interval = sync_interval
+
+		self.namespace = NAMESPACE
+		self.pf_admin_pod = "pingfederate-admin-0"
+		self.pf_admin_container = "pingfederate-admin"
+		self.pf_engine_pod = "pingfederate-0"
+		self.pf_engine_container = "pingfederate"
+
+	# -- kubectl exec ---------------------------------------------------------
+
+	def pod_exec(self, pod_name: str, container_name: str, command: str) -> str:
+		return self.k8s.exec_command(
+			namespace=self.namespace,
+			pod_name=pod_name,
+			command=["sh", "-c", command],
+			container_name=container_name,
+		)
+
+	def pod_exec_exit_code(self, pod_name: str, container_name: str, command: str) -> int:
+		result = self.pod_exec(pod_name, container_name, f"{command} && echo __OK__ || echo __FAIL__")
+		return 0 if "__OK__" in result else 1
+
+	def admin_exec(self, command: str) -> str:
+		return self.pod_exec(
+			pod_name=self.pf_admin_pod,
+			container_name=self.pf_admin_container,
+			command=command,
+		)
+
+	def admin_exec_exit_code(self, command: str) -> int:
+		return self.pod_exec_exit_code(
+			pod_name=self.pf_admin_pod,
+			container_name=self.pf_admin_container,
+			command=command,
+		)
+
+	def engine_exec(self, command: str) -> str:
+		"""Run `command` in the engine pod (first engine pod/instance)."""
+		return self.pod_exec(
+			pod_name=self.pf_engine_pod,
+			container_name=self.pf_engine_container,
+			command=command,
+		)
+
+	def engine_exec_exit_code(self, command: str) -> int:
+		return self.pod_exec_exit_code(
+			pod_name=self.pf_engine_pod,
+			container_name=self.pf_engine_container,
+			command=command,
+		)
+
+	# -- pod file helpers -----------------------------------------------------
+
+	def file_exists_in_admin_pod(self, filename: str) -> bool:
+		return self.admin_exec_exit_code(f"test -f {self.target_dir}/{filename}") == 0
+
+	def list_files_in_admin_pod(self) -> list[str]:
+		output = self.admin_exec(f"find {self.target_dir} -type f -printf '%P\\n' 2>/dev/null").strip()
+		return [f for f in output.splitlines() if f] if output else []
+
+	def list_default_files_in_admin_pod(self) -> list[str]:
+		output = self.admin_exec(f"find {self.defaults_dir} -type f -printf '%P\\n' 2>/dev/null").strip()
+		return [f for f in output.splitlines() if f] if output else []
+
+	def file_exists_in_engine_pod(self, filename: str) -> bool:
+		return self.engine_exec_exit_code(f"test -f {self.target_dir}/{filename}") == 0
+
+	def list_files_in_engine_pod(self) -> list[str]:
+		output = self.engine_exec(f"find {self.target_dir} -type f -printf '%P\\n' 2>/dev/null").strip()
+		return [f for f in output.splitlines() if f] if output else []
+
+	def list_default_files_in_engine_pod(self) -> list[str]:
+		output = self.engine_exec(f"find {self.defaults_dir} -type f -printf '%P\\n' 2>/dev/null").strip()
+		return [f for f in output.splitlines() if f] if output else []
+
+	# -- wait for sync --------------------------------------------------------
+
+	def wait_for_sync(self, cycles: int = 2) -> None:
+		wait_time = self.sync_interval * cycles + 10
+		time.sleep(wait_time)
 
 
 @unittest.skipIf(
@@ -64,6 +187,16 @@ class TestPfTemplatesUI(unittest.TestCase):
 		)
 
 		cls.s3 = boto3.client("s3", region_name=cls.region)
+
+		cls.k8s = k8s_utils.K8sUtils()
+		cls.pf = PFSyncTestHelper(
+			k8s=cls.k8s,
+			target_dir=TEMPLATE_DIR,
+			defaults_dir=TEMPLATE_DEFAULTS_DIR,
+			staging_dir=TEMPLATE_S3_STAGING_DIR,
+			s3_prefix=TEMPLATE_S3_PREFIX,
+			sync_interval=CONFIG_DATA_S3_SYNC_INTERVAL_SECONDS,
+		)
 
 	@classmethod
 	def tearDownClass(cls) -> None:
@@ -347,8 +480,8 @@ class TestPfTemplatesUI(unittest.TestCase):
 		self.select_test_environment()
 		self.navigate_to_page("pingfederate")
 
-	def test_templates_upload_success_and_reset(self):
-		# Upload templates, verify status/S3 artifacts, then reset.
+	def test_01_templates_upload_in_ui(self):
+		"""Valid templates should successfully upload into self-service UI."""
 		self.assertTrue(
 			self.templates_zip_path.exists(),
 			f"Templates zip file not found: {self.templates_zip_path}",
@@ -376,6 +509,8 @@ class TestPfTemplatesUI(unittest.TestCase):
 		)
 		print(f"Upload success: {message}")
 
+	def test_02_templates_upload_in_s3(self):
+		"""Valid templates upload should result in expected S3 objects and status updates."""
 		# Wait for the "Creating" state before final completion validation.
 		WebDriverWait(self.browser, 30).until(
 			lambda _: self.get_row_badge_text("templates") == "Creating"
@@ -386,7 +521,7 @@ class TestPfTemplatesUI(unittest.TestCase):
 		self.browser.refresh()
 		self.wait_for_loader()
 		
-        # Wait for the status to turn "Complete"
+		# Wait for the status to turn "Complete"
 		badge = self.get_row_badge_text("templates")
 		if badge != "Complete":
 			badge = self.wait_for_status(
@@ -420,6 +555,40 @@ class TestPfTemplatesUI(unittest.TestCase):
 		)
 		print("Verified deployed templates.zip in S3")
 
+	def test_03_templates_synced_in_pf_admin(self):
+		"""Valid templates s3 upload should result in successful sync in PingFederate admin pod."""
+		expected_keys = self.get_expected_template_object_keys(self.templates_zip_path)
+		self.pf.wait_for_sync()
+
+		missing_keys = []
+		for key in expected_keys:
+			if not self.pf.file_exists_in_admin_pod(key):
+				missing_keys.append(key)
+
+		self.assertEqual(
+			missing_keys,
+			[],
+			f"Files from S3 not found in {self.pf.pf_admin_pod} pod {self.pf.target_dir}: {missing_keys}"
+		)
+
+	def test_04_templates_synced_in_pf_engine(self):
+		"""Valid templates s3 upload should result in successful sync in PingFederate engine pod."""
+		expected_keys = self.get_expected_template_object_keys(self.templates_zip_path)
+		self.pf.wait_for_sync()
+
+		missing_keys = []
+		for key in expected_keys:
+			if not self.pf.file_exists_in_engine_pod(key):
+				missing_keys.append(key)
+
+		self.assertEqual(
+			missing_keys,
+			[],
+			f"Files from S3 not found in {self.pf.pf_engine_pod} pod {self.pf.target_dir}: {missing_keys}"
+		)
+
+	def test_05_templates_upload_reset_to_default(self):
+		"""Templates should reset to default when deleted in UI."""
 		# Reset templates back to default.
 		self.reset_to_default("templates")
 		_, reset_message = self.get_toast_notification()
@@ -433,8 +602,32 @@ class TestPfTemplatesUI(unittest.TestCase):
 			"Configure button did not re-appear after reset",
 		)
 
-	def test_templates_zip_slip_shows_error_details(self):
-		# Upload malicious zip and confirm validation errors are surfaced.
+	def test_06_templates_reset_to_default_in_pf_admin(self):
+		"""PingFederate admin templates should reset to defaults after Self-Service reset."""
+		self.pf.wait_for_sync()
+
+		default_files = set(self.pf.list_default_files_in_admin_pod())
+		current_files = set(self.pf.list_files_in_admin_pod())
+		extra_files = current_files.difference(default_files)
+		self.assertFalse(
+			extra_files,
+			f"Expected no extra files in {self.pf.pf_admin_pod} pod after reset, but found: {sorted(extra_files)}",
+		)
+
+	def test_07_templates_reset_to_default_in_pf_engine(self):
+		"""PingFederate engine templates should reset to defaults after Self-Service reset."""
+		self.pf.wait_for_sync()
+
+		default_files = set(self.pf.list_default_files_in_engine_pod())
+		current_files = set(self.pf.list_files_in_engine_pod())
+		extra_files = current_files.difference(default_files)
+		self.assertFalse(
+			extra_files,
+			f"Expected no extra files in {self.pf.pf_engine_pod} pod after reset, but found: {sorted(extra_files)}",
+		)
+
+	def test_08_templates_zip_slip_shows_error_details(self):
+		"""Upload malicious zip and confirm validation errors are surfaced."""
 		self.assertTrue(
 			self.zip_slip_path.exists(),
 			f"Zip-slip test file not found: {self.zip_slip_path}",
