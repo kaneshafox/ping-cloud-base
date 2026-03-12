@@ -267,6 +267,9 @@
 #                                  | variable value if IS_GA=false. By default, set     |
 #                                  | to non-existent channel name to prevent flooding.  |
 #                                  |                                                    |
+# SELF_SERVICE_TEMPLATES_ENABLED   | Feature-flag, indicates whether self-service       | If unset, value is derived from UPGRADE
+#                                  | templates management feature is enabled.           | if UPGRADE="true", then false, else true
+#                                  |                                                    |
 # SIZE                             | Size of the environment, which pertains to the     | x-small
 #                                  | number of user identities. Legal values are        |
 #                                  | x-small, small, medium or large.                   |
@@ -462,6 +465,7 @@ ${EXTERNAL_INGRESS_ENABLED}
 ${HEALTHCHECKS_ENABLED}
 ${CUSTOMER_PINGONE_ENABLED}
 ${ARGOCD_BOOTSTRAP_ENABLED}
+${SELF_SERVICE_TEMPLATES_ENABLED}
 ${CLOUDWATCH_ENABLED}
 ${ARGOCD_CDE_ROLE_SSM_TEMPLATE}
 ${ARGOCD_CDE_URL_SSM_TEMPLATE}
@@ -833,6 +837,8 @@ echo "Initial HEALTHCHECKS_ENABLED: ${HEALTHCHECKS_ENABLED}"
 
 echo "Initial CUSTOMER_PINGONE_ENABLED: ${CUSTOMER_PINGONE_ENABLED}"
 
+echo "Initial SELF_SERVICE_TEMPLATES_ENABLED: ${SELF_SERVICE_TEMPLATES_ENABLED}"
+
 echo "Initial ARGOCD_BOOTSTRAP_ENABLED: ${ARGOCD_BOOTSTRAP_ENABLED}"
 echo "Initial ARGOCD_CDE_ROLE_SSM_TEMPLATE: ${ARGOCD_CDE_ROLE_SSM_TEMPLATE}"
 echo "Initial ARGOCD_CDE_URL_SSM_TEMPLATE: ${ARGOCD_CDE_URL_SSM_TEMPLATE}"
@@ -996,6 +1002,15 @@ export ARGOCD_BOOTSTRAP_ENABLED="${ARGOCD_BOOTSTRAP_ENABLED:-true}"
 export EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED:-""}"
 export HEALTHCHECKS_ENABLED="${HEALTHCHECKS_ENABLED:-false}"
 export CUSTOMER_PINGONE_ENABLED="${CUSTOMER_PINGONE_ENABLED:-false}"
+if test -z "${SELF_SERVICE_TEMPLATES_ENABLED}"; then
+  if test "${UPGRADE:-false}" = "false"; then
+    export SELF_SERVICE_TEMPLATES_ENABLED="true"
+  else
+    export SELF_SERVICE_TEMPLATES_ENABLED="false"
+  fi
+else
+  export SELF_SERVICE_TEMPLATES_ENABLED="${SELF_SERVICE_TEMPLATES_ENABLED}"
+fi
 
 ### Default environment variables ###
 export ECR_REGISTRY_NAME='public.ecr.aws/r2h3l6e4'
@@ -1156,6 +1171,7 @@ echo "Using ARGOCD_BOOTSTRAP_ENABLED: ${ARGOCD_BOOTSTRAP_ENABLED}"
 echo "Using EXTERNAL_INGRESS_ENABLED: ${EXTERNAL_INGRESS_ENABLED}"
 echo "Using HEALTHCHECKS_ENABLED: ${HEALTHCHECKS_ENABLED}"
 echo "Using CUSTOMER_PINGONE_ENABLED: ${CUSTOMER_PINGONE_ENABLED}"
+echo "Using SELF_SERVICE_TEMPLATES_ENABLED: ${SELF_SERVICE_TEMPLATES_ENABLED}"
 echo "Using TARGET_DIR: ${TARGET_DIR}"
 echo "Using IS_BELUGA_ENV: ${IS_BELUGA_ENV}"
 
