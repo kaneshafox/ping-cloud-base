@@ -1002,6 +1002,9 @@ export ARGOCD_BOOTSTRAP_ENABLED="${ARGOCD_BOOTSTRAP_ENABLED:-true}"
 export EXTERNAL_INGRESS_ENABLED="${EXTERNAL_INGRESS_ENABLED:-""}"
 export HEALTHCHECKS_ENABLED="${HEALTHCHECKS_ENABLED:-false}"
 export CUSTOMER_PINGONE_ENABLED="${CUSTOMER_PINGONE_ENABLED:-false}"
+
+# For SELF_SERVICE_TEMPLATES_ENABLED, we want to default it to true for new clusters but false for upgrades,
+# since we don't want to introduce new functionality via an upgrade without explicit opt-in.
 if test -z "${SELF_SERVICE_TEMPLATES_ENABLED}"; then
   if test "${UPGRADE:-false}" = "false"; then
     export SELF_SERVICE_TEMPLATES_ENABLED="true"
