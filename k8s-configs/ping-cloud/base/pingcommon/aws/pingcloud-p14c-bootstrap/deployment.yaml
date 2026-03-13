@@ -14,6 +14,9 @@ spec:
     spec:
       serviceAccount: bootstrap-serviceaccount
       securityContext:
+        runAsGroup: 9999
+        runAsNonRoot: true
+        runAsUser: 9031
         fsGroup: 9999
       initContainers:
       - name: bootstrap-discovery-service
@@ -30,15 +33,20 @@ spec:
         - name: discovery-service
           mountPath: /get_ssm_env_vars.sh
           subPath: get_ssm_env_vars.sh
+        - name: aws-config-dir
+          mountPath: /.aws
+          subPath: discovery-service-aws-config
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          allowPrivilegeEscalation: false
+          privileged: false
+          readOnlyRootFilesystem: true
       containers:
       - name: p14c-bootstrap
         image: 705370621539.dkr.ecr.us-west-2.amazonaws.com/pingcloud-services/bootstrap:PDO-11265
         imagePullPolicy: Always
-        securityContext:
-          runAsGroup: 9999
-          runAsNonRoot: true
-          runAsUser: 9031
-          allowPrivilegeEscalation: false
         env:
         - name: NAMESPACE
           valueFrom:
@@ -70,6 +78,8 @@ spec:
             name: pingcommon-init
             defaultMode: 0555
         - name: data-dir
+          emptyDir: {}
+        - name: aws-config-dir
           emptyDir: {}
         - name: pingcloud-p14c-bootstrap-resources
           configMap:
