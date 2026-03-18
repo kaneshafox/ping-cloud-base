@@ -153,7 +153,7 @@ PINGDATASYNC_IMAGE_TAG=v2.2-release-branch-latest
 ############################################################
 # Ping solution image tags
 ############################################################
-BOOTSTRAP_IMAGE_TAG=PDO-11265
+BOOTSTRAP_IMAGE_TAG=v2.2-release-branch-latest
 P14C_INTEGRATION_IMAGE_TAG=v2.2-release-branch-latest
 
 ############################################################

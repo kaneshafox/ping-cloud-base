@@ -10,9 +10,6 @@ resources:
   - ../base/custom-resources
   - custom-resources
 
-helmGlobals:
-  configHome: /helm-working-dir
-
 helmCharts:
   - name: p1as-self-service
     namespace: ${PING_CLOUD_NAMESPACE}
@@ -20,11 +17,8 @@ helmCharts:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    valuesInline:
-      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
-      profileBranch: my-feature-branch
-    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
-    version: v2.2-PDO-10907
+    version: v2.2-release-branch-latest
+    repo: oci://${ECR_REGISTRY_NAME}/dev
 
 ### This field is used to trigger a resync of the p1as-self-service helm chart ###
 configMapGenerator:
