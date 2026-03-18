@@ -355,7 +355,7 @@ class TestPfTemplatesUI(unittest.TestCase):
 			toast_text = toast.text.strip()
 		return toast_type, toast_text
 
-	def get_row_badge_text(self, config_key: str) -> str | None:
+	def get_row_badge_text(self, config_key: str):
 		row = self.get_row(config_key)
 		badges = row.find_elements(By.XPATH, './/span[contains(@class, "badge")]')
 		if badges:
