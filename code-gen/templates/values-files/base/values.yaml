@@ -49,11 +49,7 @@ global:
       # Default Admin User Password for PingCentral
       pcAdminUserPassword: MkZlZGVyYXRlTTByZQ==
       # Default Admin User Password for PingAccess
-      oldPaAdminUserPassword: MkFjY2Vzcw==
       paAdminUserPassword: MkZlZGVyYXRlTTByZQ==
-      # Default Admin User Password for PingAccess-WAS
-      oldPaWasAdminUserPassword: MkFjY2Vzcw==
-      paWasAdminUserPassword: MkZlZGVyYXRlTTByZQ==
 
       ###### PingDirectory Secrets #####
 
@@ -95,11 +91,15 @@ global:
 
       ###### PingAccess Secrets #####
       # Optional license key for PingAccess
-      # pingAccessLicense:
+      # pingaccessLicense:
+      oldPaAdminUserPassword: MkFjY2Vzcw==
 
       #### PingAccess-WAS Secrets ####
       # Optional license key for PingAccess-WAS
       # pingaccessWasLicense:
+      # Default Admin User Password for PingAccess-WAS
+      oldPaWasAdminUserPassword: MkFjY2Vzcw==
+      paWasAdminUserPassword: MkZlZGVyYXRlTTByZQ==
 
   ########################################################
   # Multi-region parameters
@@ -248,6 +248,7 @@ global:
   pdClusterPublicHostname: "pingdirectory-cluster.${PRIMARY_DNS_ZONE}"
   selfServicePublicHostname: "self-service-api.${PRIMARY_DNS_ZONE}"
   selfServiceUIPublicHostname: "self-service.${PRIMARY_TENANT_DOMAIN}"
+  argocdPublicHostname: "argocd.${VALUES_FILES_DNS_ZONE}"
 
   #### FEATURE FLAGS ##################################################################################################
   # Most are disabled by default
