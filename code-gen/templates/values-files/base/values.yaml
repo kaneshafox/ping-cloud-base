@@ -248,7 +248,7 @@ global:
   pdClusterPublicHostname: "pingdirectory-cluster.${PRIMARY_DNS_ZONE}"
   selfServicePublicHostname: "self-service-api.${PRIMARY_DNS_ZONE}"
   selfServiceUIPublicHostname: "self-service.${PRIMARY_TENANT_DOMAIN}"
-  argocdPublicHostname: "argocd.${VALUES_FILES_DNS_ZONE}"
+  argocdPublicHostname: "argocd.${PRIMARY_TENANT_DOMAIN}"
 
   #### FEATURE FLAGS ##################################################################################################
   # Most are disabled by default
