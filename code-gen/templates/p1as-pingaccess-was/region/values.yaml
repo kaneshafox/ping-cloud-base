@@ -82,10 +82,3 @@ pingaccessWas:
       requests:
         memory: "25Mi"
         cpu: "25m"
-
-    ########################################################
-    # Public Hostnames
-    ########################################################
-    paWasAdminPublicHostname: "pingaccess-was-admin.${PRIMARY_TENANT_DOMAIN}"
-    paWasClusterPublicHostname: "pingaccess-was-cluster.${PRIMARY_TENANT_DOMAIN}"
-    paWasEnginePublicHostname: "pingaccess-was.${PRIMARY_TENANT_DOMAIN}"
