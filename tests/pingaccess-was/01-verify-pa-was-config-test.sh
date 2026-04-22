@@ -257,10 +257,6 @@ testPaWasIdempotent() {
   log "Deleting app: ${APP_NAME} if it exists"
   response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${APP_ID}")
 
-  upload_job="${PROJECT_DIR}"/k8s-configs/ping-cloud/base/pingaccess-was/admin/aws/backup.yaml
-  log "Deleting pa-was backup job if it exists"
-  kubectl delete -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
-
   log "Creating new App: ${APP_NAME}"
   response=$(create_site_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}")
   assertEquals "Response value was ${response}" 0 $?
