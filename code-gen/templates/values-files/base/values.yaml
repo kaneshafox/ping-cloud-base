@@ -91,12 +91,12 @@ global:
 
       ###### PingAccess Secrets #####
       # Optional license key for PingAccess
-      # pingaccessLicense:
+      # pingAccessLicense:
       oldPaAdminUserPassword: MkFjY2Vzcw==
 
       #### PingAccess-WAS Secrets ####
       # Optional license key for PingAccess-WAS
-      # pingaccessWasLicense:
+      # pingAccessWasLicense:
       # Default Admin User Password for PingAccess-WAS
       oldPaWasAdminUserPassword: MkFjY2Vzcw==
       paWasAdminUserPassword: MkZlZGVyYXRlTTByZQ==
@@ -248,13 +248,10 @@ global:
   pdClusterPublicHostname: "pingdirectory-cluster.${PRIMARY_DNS_ZONE}"
   selfServicePublicHostname: "self-service-api.${PRIMARY_DNS_ZONE}"
   selfServiceUIPublicHostname: "self-service.${PRIMARY_TENANT_DOMAIN}"
-  argocdPublicHostname: "argocd.${PRIMARY_TENANT_DOMAIN}"
+  argocdPublicHostname: "argocd.${DNS_ZONE_DERIVED}"
   paAdminPublicHostname: "pingaccess-admin.${PRIMARY_TENANT_DOMAIN}"
   paClusterPublicHostname: "pingaccess-cluster.${PRIMARY_TENANT_DOMAIN}"
   paEnginePublicHostname: "pingaccess.${PRIMARY_TENANT_DOMAIN}"
-  paWasAdminPublicHostname: "pingaccess-was-admin.${PRIMARY_TENANT_DOMAIN}"
-  paWasClusterPublicHostname: "pingaccess-was-cluster.${PRIMARY_TENANT_DOMAIN}"
-  paWasEnginePublicHostname: "pingaccess-was.${PRIMARY_TENANT_DOMAIN}"
 
   #### FEATURE FLAGS ##################################################################################################
   # Most are disabled by default
