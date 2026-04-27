@@ -20,7 +20,6 @@
 - Upgrade pod-reaper to version 2.14.0
 - Bundle Documentation folder in profile-repo explaining all static files for all Products
 - Update Security Contexts for elastic-stack-logging workloads (pt 2)
-- Enabled JSON for PA/PA-WAS/PF/PD
 - Add ENABLE_IMPOSSIBLE_LOGIN_DASHBOARD feature flag to conditionally deploy PingFederate Impossible Login OpenSearch dashboards
 - Update to include dedicated pipeline for S3
 - Enable Logstash exporter scraping endpoint arg + service annotations
@@ -32,10 +31,15 @@
 - Update seal-secret-values.py to handle customSecrets entries for Helm charts
 - p1as-karpenter GA vs non-ga settings
 - Remove metrics-server and kube-state-metrics from PCB
+- Update Security Contexts for Argocd
+- Add support for NewRelic Prometheus to scrape OpenSearch metrics
+- Enhance prometheus and prometheus-agent integration, system test
+- Add patch to conditionally deploy logstash-elastic STS (customer pipeline) in customer-hub accounts
 
 _Changes:_
 
 - [X] PDO-5993 Prometheus: Add p1as-Observability to PCB
+- [X] PDO-6001 Enhance Prometheus tests (unit, integration, system)
 - [X] PDO-8391 Implement KMS changes for EBS
 - [X] PDO-8951 FluentBit: Remove K8s Metadata and Labels
 - [X] PDO-10077 Upgrade cluster-autoscaler to version 1.34
@@ -55,7 +59,6 @@ _Changes:_
 - [X] PDO-10578 Update PA/PF integration tests to use oauth tokens for admin API calls
 - [X] PDO-10728 Bundle Documentation folder in profile-repo explaining all static files for all Products
 - [X] PDO-10748 Update Security Contexts for elastic-stack-logging workloads (pt 2)
-- [X] PDO-10795 Enable JSON-Based Logging for PA / PF / PD / PA-WAS
 - [X] PDO-10816 Upgrade external-dns to version v0.20.0
 - [X] PDO-10819 Upgrade kube-state-metrics to version 2.18.0
 - [X] PDO-10877 Update Security Contexts for ping-cloud namespace workloads - part2
@@ -66,8 +69,11 @@ _Changes:_
 - [X] PDO-11104 Update p1as-beluga-lib and seal-secret-values to handle dynamic secrets
 - [X] PDO-11307 Prometheus: Migrate job-exporter and json-exporter to ping-cloud-common repo
 - [X] PDO-11356 P14C_INTEGRATION_IMAGE_TAG not applied to pingaccess-p1as-sso image
+- [X] PDO-11340 Expose OpenSearch Metrics for Monitoring and Alerting on NewRelic
+- [X] PDO-11365 Logstash: Update to make logstash sts (customer pipeline) optional in customer-hub
 - [X] PDO-11376 Remove metrics-server and kube-state-metrics from PCB
 - [X] PDO-11390 Adjust resource and config allocation for FluentBit & Logstash
+- [x] PDO-11586 Update Security Contexts for Argocd
 
 ### 2.2.1
 
