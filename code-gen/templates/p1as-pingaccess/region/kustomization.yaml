@@ -5,8 +5,6 @@ namespace: ${PING_CLOUD_NAMESPACE}
 
 commonLabels:
   app: ping-cloud
-#role: pingaccess
-
 
 resources:
   - ../base/custom-resources

@@ -257,6 +257,10 @@ testPaWasIdempotent() {
   log "Deleting app: ${APP_NAME} if it exists"
   response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${APP_ID}")
 
+  upload_job="${PROJECT_DIR}"/k8s-configs/ping-cloud/base/pingaccess-was/admin/aws/backup.yaml
+  log "Deleting pa-was backup job if it exists"
+  kubectl delete -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
+
   log "Creating new App: ${APP_NAME}"
   response=$(create_site_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}")
   assertEquals "Response value was ${response}" 0 $?
@@ -267,6 +271,14 @@ testPaWasIdempotent() {
     response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${pa_app_id}")
     assertEquals "Response value was ${response}" 0 $?
   fi
+
+  log "Backing up PA-WAS"
+  kubectl apply -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
+  assertEquals "The kubectl apply command to create the PingAccess WAS upload job should have succeeded" 0 $?
+
+  log "Waiting for backup job to complete"
+  kubectl wait --for=condition=complete --timeout=900s job/pingaccess-was-backup -n "${PING_CLOUD_NAMESPACE}"
+  assertEquals "The kubectl wait command for the backup job should have succeeded" 0 $?
 
   log "Restarting PA-WAS Admin"
   kubectl exec pingaccess-was-admin-0 -n "${PING_CLOUD_NAMESPACE}" -c pingaccess-was-admin -- sh -c "pgrep -f java | xargs kill"
@@ -286,6 +298,7 @@ testPaWasIdempotent() {
   log "Verifying the new App: ${APP_NAME} still present"
   response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${APP_ID}")
   assertEquals "The new App: ${APP_NAME} should have been present after restart: ${response}" 0 $?
+
 }
 
 
