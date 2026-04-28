@@ -2,10 +2,10 @@
 
 CI_SCRIPTS_DIR="${SHARED_CI_SCRIPTS_DIR:-/ci-scripts}"
 . "${CI_SCRIPTS_DIR}"/common.sh "${1}"
-. "${PROJECT_DIR}"/tests/pingaccess/util/pa-test-utils.sh
-. "${PROJECT_DIR}"/tests/pingaccess/common-api/create-entity-operations.sh
-. "${PROJECT_DIR}"/tests/pingaccess/common-api/delete-entity-operations.sh
-. "${PROJECT_DIR}"/tests/pingaccess-was/common-api/get-entity-operations.sh
+. "${PROJECT_DIR}"/tests/integration/pingaccess/util/pa-test-utils.sh
+. "${PROJECT_DIR}"/tests/integration/pingaccess/common-api/create-entity-operations.sh
+. "${PROJECT_DIR}"/tests/integration/pingaccess/common-api/delete-entity-operations.sh
+. "${PROJECT_DIR}"/tests/integration/pingaccess-was/common-api/get-entity-operations.sh
 
 
 if skipTest "${0}"; then
@@ -13,17 +13,34 @@ if skipTest "${0}"; then
   exit 0
 fi
 
+readonly PA_WAS_ADMIN_LOCAL_PORT=19001
+readonly PA_WAS_ADMIN_REMOTE_PORT=9000
+readonly PA_WAS_ADMIN_SERVICE_NAME="pingaccess-was-admin"
+readonly PA_WAS_ADMIN_PORT_FORWARD_LOG="/tmp/pingaccess-was-admin-port-forward.log"
+
 oneTimeSetUp() {
 
   # Using the pa-test-utils in the pingaccess
   # directory to avoid duplication.
-  . ${PROJECT_DIR}/tests/pingaccess/util/pa-test-utils.sh
+  . ${PROJECT_DIR}/tests/integration/pingaccess/util/pa-test-utils.sh
 
   SCRIPT_HOME=$(cd $(dirname ${0}); pwd)
   . ${SCRIPT_HOME}/common-api/get-entity-operations.sh
 
   export PA_ADMIN_PASSWORD=2FederateM0re
-  export templates_dir_path="${PROJECT_DIR}"/tests/pingaccess/templates
+  export templates_dir_path="${PROJECT_DIR}"/tests/integration/pingaccess/templates
+
+  PORT_FORWARD_PID=$(start_service_port_forward \
+    "${PING_CLOUD_NAMESPACE}" \
+    "${PA_WAS_ADMIN_SERVICE_NAME}" \
+    "${PA_WAS_ADMIN_LOCAL_PORT}" \
+    "${PA_WAS_ADMIN_REMOTE_PORT}" \
+    "${PA_WAS_ADMIN_PORT_FORWARD_LOG}")
+  port_forward_exit_code=$?
+
+  assertEquals "Failed to start port-forward for ${PA_WAS_ADMIN_SERVICE_NAME}. Check ${PA_WAS_ADMIN_PORT_FORWARD_LOG}" 0 "${port_forward_exit_code}"
+
+  PINGACCESS_WAS_API="https://localhost:${PA_WAS_ADMIN_LOCAL_PORT}/pa-admin-api/v3"
 
 }
 
@@ -257,9 +274,10 @@ testPaWasIdempotent() {
   log "Deleting app: ${APP_NAME} if it exists"
   response=$(delete_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${APP_ID}")
 
-  upload_job="${PROJECT_DIR}"/k8s-configs/ping-cloud/base/pingaccess-was/admin/aws/backup.yaml
+  backup_job_name="pingaccess-was-backup"
+  backup_cronjob_name="pingaccess-was-periodic-backup"
   log "Deleting pa-was backup job if it exists"
-  kubectl delete -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
+  kubectl delete job "${backup_job_name}" -n "${PING_CLOUD_NAMESPACE}" --ignore-not-found=true
 
   log "Creating new App: ${APP_NAME}"
   response=$(create_site_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}")
@@ -273,11 +291,11 @@ testPaWasIdempotent() {
   fi
 
   log "Backing up PA-WAS"
-  kubectl apply -f "${upload_job}" -n "${PING_CLOUD_NAMESPACE}"
-  assertEquals "The kubectl apply command to create the PingAccess WAS upload job should have succeeded" 0 $?
+  kubectl create job --from=cronjob/"${backup_cronjob_name}" "${backup_job_name}" -n "${PING_CLOUD_NAMESPACE}"
+  assertEquals "The kubectl create command to create the PingAccess WAS upload job should have succeeded" 0 $?
 
   log "Waiting for backup job to complete"
-  kubectl wait --for=condition=complete --timeout=900s job/pingaccess-was-backup -n "${PING_CLOUD_NAMESPACE}"
+  kubectl wait --for=condition=complete --timeout=900s job/"${backup_job_name}" -n "${PING_CLOUD_NAMESPACE}"
   assertEquals "The kubectl wait command for the backup job should have succeeded" 0 $?
 
   log "Restarting PA-WAS Admin"
@@ -299,6 +317,10 @@ testPaWasIdempotent() {
   response=$(get_application "${PA_ADMIN_PASSWORD}" "${PINGACCESS_WAS_API}" "${APP_ID}")
   assertEquals "The new App: ${APP_NAME} should have been present after restart: ${response}" 0 $?
 
+}
+
+oneTimeTearDown() {
+  stop_service_port_forward "${PORT_FORWARD_PID}"
 }
 
 
