@@ -35,6 +35,8 @@
 - Add support for NewRelic Prometheus to scrape OpenSearch metrics
 - Enhance prometheus and prometheus-agent integration, system test
 - Add patch to conditionally deploy logstash-elastic STS (customer pipeline) in customer-hub accounts
+- Remove cloudwatch image override to rely on p1as-observability's p1as-cloudwatch chart default to simplify future Cloudwatch agent version upgrades
+- Implement Logstash HPA via custom metric
 
 _Changes:_
 
@@ -61,12 +63,14 @@ _Changes:_
 - [X] PDO-10748 Update Security Contexts for elastic-stack-logging workloads (pt 2)
 - [X] PDO-10816 Upgrade external-dns to version v0.20.0
 - [X] PDO-10819 Upgrade kube-state-metrics to version 2.18.0
+- [X] PDO-10842 Remove cloudwatch image override to rely on p1as-cloudwatch chart default
 - [X] PDO-10877 Update Security Contexts for ping-cloud namespace workloads - part2
 - [X] PDO-11030 OpenSearch: Enable conditional deploy of PingFederate Impossible Login Distance Map from Dashboards
 - [X] PDO-11071 OpenSearch: Implement Logstash → Write Alias + ISM Rollover (40GB or Daily), Read-Only + Delete
 - [X] PDO-11091 Logstash: Implement  (Fluent Bit → 2x Logstash StatefulSets)
 - [X] PDO-11092 Grafana: Update Dashboards for (Fluent Bit → 2x Logstash)
 - [X] PDO-11104 Update p1as-beluga-lib and seal-secret-values to handle dynamic secrets
+- [X] PDO-11243 Prometheus-Adapter: Implement Logstash HPA via custom metric
 - [X] PDO-11307 Prometheus: Migrate job-exporter and json-exporter to ping-cloud-common repo
 - [X] PDO-11356 P14C_INTEGRATION_IMAGE_TAG not applied to pingaccess-p1as-sso image
 - [X] PDO-11340 Expose OpenSearch Metrics for Monitoring and Alerting on NewRelic
