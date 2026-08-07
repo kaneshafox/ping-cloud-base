@@ -7,17 +7,12 @@ commonLabels:
   app: ping-cloud
   role: p14c-bootstrap
 
-generatorOptions:
-  disableNameSuffixHash: true
-
 configMapGenerator:
 - name: pingcloud-p14c-bootstrap-resources
   files:
     - p14c-bootstrap-resources.yaml
 
 - name: pingcloud-p14c-bootstrap-environment-variables
-  options:
-    disableNameSuffixHash: false
   envs:
   - env_vars
 
