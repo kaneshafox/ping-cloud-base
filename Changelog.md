@@ -15,7 +15,7 @@ _Changes:_
 - Upgrade kube-state-metrics to version 2.18.0
 - Upgrade PingAccess and PingAccess-WAS to v9.0.3
 - Update descriptorFile in values-files/base/values.yaml from YAML block content to JSON block content
-- Add logic to do pod rollout restart when respective configmaps change
+- Add logic to do bootstrap pod rollout restart when respective configmaps change
 
 _Changes:_
 
