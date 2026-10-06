@@ -10,33 +10,45 @@ resources:
 transformers:
   - ../base/namespace-transformer.yaml
 
+helmGlobals:
+  configHome: /helm-working-dir
+
 helmCharts:
   - name: p1as-cloudwatch
     additionalValuesFiles:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: amazon-cloudwatch
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
 
   - name: p1as-newrelic
     additionalValuesFiles:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: newrelic
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
 
   - name: p1as-grafana
     additionalValuesFiles:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: prometheus
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
     includeCRDs: true
 
   - name: p1as-prometheus
@@ -44,27 +56,36 @@ helmCharts:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: prometheus
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
 
   - name: p1as-prometheus-agent
     additionalValuesFiles:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: prometheus
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
 
   - name: p1as-prometheus-adapter
     additionalValuesFiles:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: prometheus
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
     apiVersions:
       - apiregistration.k8s.io/v1
 
@@ -73,9 +94,12 @@ helmCharts:
       - ../../values-files/base/values.yaml   # base values.yaml
       - ../../values-files/${REGION_NICK_NAME}/values.yaml   # regional values.yaml
       - values.yaml   # app specific values.yaml
-    version: v2.4-release-branch-latest
+    version: v2.4-PDO-11789-values-review
     namespace: elastic-stack-logging
-    repo: oci://${ECR_REGISTRY_NAME}/dev
+    valuesInline:
+      ecrRegistryName: "705370621539.dkr.ecr.us-west-2.amazonaws.com/dev"
+      profileBranch: my-feature-branch
+    repo: oci://705370621539.dkr.ecr.us-west-2.amazonaws.com/dev
     includeCRDs: true
 
 ### This field is used to trigger a resync of the helm chart ###
